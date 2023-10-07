@@ -1,5 +1,5 @@
 import { AES } from "crypto-js";
-import { CardColor, CardType, PlayerInfoType } from "../types/roomInfo";
+import { CardColor, CardType, PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { privateKey } from "./const";
 
 // [ 'A','2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
@@ -24,7 +24,8 @@ export function initAllCards(shortCards = false) {
   return deck;
 }
 
-export function distributeCards(cards: CardType[], players: PlayerInfoType[]) {
+export function distributeCards(room: RoomInfo) {
+  const { cards, players } = room;
   const restDeck: number[] = cards.map((_item,index) => index)
   
   // random draw card
@@ -37,14 +38,34 @@ export function distributeCards(cards: CardType[], players: PlayerInfoType[]) {
     return drawnCard;
   }
 
-  players.forEach(player => {
-    // distribute two cards to each player
+  // ========== distribute two cards to each player ==========
+  const newPlayers: PlayerInfoType[] = players.map(player => {
+    let holdCards = [];
+
     for (let index = 0; index < 2; index++) {
       let getCard = drawCard();
 
       getCard.holder = player.name;
       getCard.statu = 'distributed';
-      player.holdCards = [...player.holdCards || [], getCard];
+      holdCards.push(getCard)
+    }
+
+    return {
+      ...player,
+      holdCards,
     }
   })
+
+  // ====== distribute five cards to public card pool =======
+  let publicCards = [];
+  for (let index = 0; index < 5; index++) {
+    let getCard = drawCard();
+    publicCards.push(getCard)
+  }
+
+  return {
+    ...room,
+    players: newPlayers,
+    publicCards
+  }
 }
