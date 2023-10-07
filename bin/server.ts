@@ -8,8 +8,10 @@ import fs from "fs";
 import path from "path";
 import app from "../app";
 import debug from "debug";
-import { Server as ServerIO  } from "socket.io";
-import { getRoomInfo } from "../database/roomInfo";
+import { Server as ServerIO, Socket  } from "socket.io";
+import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, getRoomInfo } from "../database/roomInfo";
+import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
+import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
 /**
  * 读取环境变量配置。
@@ -105,9 +107,63 @@ function onListening() {
 
 // ===================== socket ==============================
 
-const websocketIo = new ServerIO(server);
+const websocketIo = new ServerIO(server, {
+  cors: {
+    origin: 'http://localhost:3333', // allowed front-end ip
+    methods: ['GET', 'POST'], // allowed HTTP methods
+    allowedHeaders: ['my-custom-header'],
+  }
+});
+
+const roomMap = new Map<string, Map<string, Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>>>();
 
 websocketIo.on('connection', socket => {
-  console.log(getRoomInfo('123456'), getRoomInfo('888888'));
+  const connectRoomSocket = socket.on('connectRoom', ({ roomId, userName } : { roomId: string; userName: string }) => {
+    let socketMap = roomMap.get(roomId)?.get(userName);
+
+    if (!socketMap) {
+      let userMap = roomMap.get(roomId)
+      if (userMap) {
+        userMap.set(userName, socket)
+      } else {
+        roomMap.set(roomId, new Map().set(roomId, socket))
+      }
+    } else {
+      roomMap.get(roomId)?.set(userName, socket);
+    }
+    // ================= collect sockets =====================
+
+    let room: RoomInfo;
+    let player: PlayerInfoType;
+
+    room = getRoomInfo(roomId) as RoomInfo;
+    if (room) {
+      player = creatPlayer(userName, roomId);
+      addPlayerForRoom(roomId, player)
+    } else {
+      player = creatPlayer(userName);
+      room = createRoom(player, roomId)
+    }
+
+    socket.emit(`room:${roomId}`, room)
+
+    // ================== create room and add players ===========
+
+    
+    // report to all rooms
+    room.players.forEach(playerItem => {
+      roomMap.get(roomId)?.forEach(socketItem => {
+        socketItem.emit(`user:${roomId}:${playerItem.name}`, room.players)
+      })
+    })
+
+    // delete player from waiting room when it disconnects
+    connectRoomSocket.on("disconnect", () => {
+      console.log('deletePlayerForRoom', roomId, userName);
+      if (room.statu === 'waiting') {
+        deletePlayerForRoom(roomId, userName);
+      }
+    });
+  })
 })
 
