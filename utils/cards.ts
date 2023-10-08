@@ -24,9 +24,16 @@ export function initAllCards(shortCards = false) {
   return deck;
 }
 
-export function distributeCards(room: RoomInfo) {
+export function distributeCards(room: RoomInfo): RoomInfo {
   const { cards, players } = room;
-  const restDeck: number[] = cards.map((_item,index) => index)
+  let restDeck: number[]
+
+  if (room.statu === 'waiting') {
+    restDeck = cards.map((_item,index) => index)
+  } else {
+    // init when room isn't first start
+    restDeck = initAllCards(room.cards.length < 52).map((_item,index) => index)
+  }
   
   // random draw card
   function drawCard() {
@@ -39,21 +46,24 @@ export function distributeCards(room: RoomInfo) {
   }
 
   // ========== distribute two cards to each player ==========
-  const newPlayers: PlayerInfoType[] = players.map(player => {
+  const newPlayers = new Map<string, PlayerInfoType>();
+  players.forEach(player => {
     let holdCards = [];
 
     for (let index = 0; index < 2; index++) {
       let getCard = drawCard();
-
+      // need to change origin object
       getCard.holder = player.name;
       getCard.statu = 'distributed';
+      getCard.showFace = 'front';
       holdCards.push(getCard)
     }
 
-    return {
+    newPlayers.set(player.name, {
       ...player,
       holdCards,
-    }
+      status: player.position === room.buttonIndex ? 'calling' : 'waiting',
+    } as PlayerInfoType) 
   })
 
   // ====== distribute five cards to public card pool =======
@@ -66,6 +76,10 @@ export function distributeCards(room: RoomInfo) {
   return {
     ...room,
     players: newPlayers,
-    publicCards
+    publicCards,
+    statu: 'started',
+    callingSteps: 0,
+    currentHasChips: 0,
+    currentCallChips: 0,
   }
 }

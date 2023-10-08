@@ -15,16 +15,19 @@ export interface CardType {
 export interface PlayerInfoType {
     name: string;
     position: number;
-    status: 'calling' | 'waiting';
+    status: 'calling' | 'waiting' | 'fold';
     holdCards?: CardType[];
+    calledChips: number;
     holdCent: number;
 }
 
 export interface RoomInfo {
   cards: CardType[];
   publicCards?: CardType[];
-  players: PlayerInfoType[];
+  players: Map<string, PlayerInfoType>;
   buttonIndex: number;
-  playerMap: Set<string>;
-  statu: 'waiting' | 'started' | 'settling'
+  statu: 'waiting' | 'started' | 'settling';
+  currentCallChips: number;
+  currentHasChips: number;
+  callingSteps: number;
 }

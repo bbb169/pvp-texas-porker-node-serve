@@ -9,9 +9,10 @@ import path from "path";
 import app from "../app";
 import debug from "debug";
 import { Server as ServerIO, Socket  } from "socket.io";
-import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, getRoomInfo } from "../database/roomInfo";
+import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, getRoomInfo, playerCallChips, startGame, updateRoom } from "../database/roomInfo";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { distributeCards } from "../utils/cards";
 
 /**
  * 读取环境变量配置。
@@ -120,7 +121,7 @@ export type RoomSocketMapType = Map<string, Map<string, Socket<DefaultEventsMap,
 const roomMap: RoomSocketMapType = new Map();
 
 websocketIo.on('connection', socket => {
-  const connectRoomSocket = socket.on('connectRoom', ({ roomId, userName } : { roomId: string; userName: string }) => {
+  socket.on('connectRoom', ({ roomId, userName } : { roomId: string; userName: string }) => {
     let socketMap = roomMap.get(roomId)?.get(userName);
 
     if (!socketMap) {
@@ -147,7 +148,10 @@ websocketIo.on('connection', socket => {
       room = createRoom(player, roomId)
     }
 
-    socket.emit(`room:${roomId}`, room)
+    socket.emit(`room:${roomId}`, {
+      ...room,
+      cards: undefined,
+    } as Omit<RoomInfo, 'cards'>)
 
     // ================== create room and add players ===========
 
@@ -156,23 +160,44 @@ websocketIo.on('connection', socket => {
     reportToAllPlayersInRoom(roomId);
 
     // delete player from waiting room when it disconnects
-    connectRoomSocket.on("disconnect", () => {
+    socket.on("disconnect", () => {
       if (room.statu === 'waiting') {
-        console.log('deletePlayerForRoom', roomId, userName);
         deletePlayerForRoom(roomId, userName, roomMap);
       }
     });
+
+    socket.on('startGame', () => {
+      const newRoom = startGame(roomId) as RoomInfo
+
+      roomMap.get(roomId)?.forEach((socketItem, userName) => {
+        socketItem.emit(`room:${roomId}`, {
+          ...newRoom,
+          cards: undefined,
+        } as Omit<RoomInfo, 'cards'>)
+        socketItem.emit(`user:${roomId}:${userName}`, Array.from(newRoom.players.values()))
+      })
+    })
+
+    socket.on(`callChips:${roomId}:${userName}`, (callChips?: number) => {
+      playerCallChips(roomId, userName,callChips).then(() => {
+        reportToAllPlayersInRoom(roomId)
+      })
+    })
   })
 })
 
 export function reportToAllPlayersInRoom(roomId:string) {
   const room = getRoomInfo(roomId);
+  console.log(room?.statu);
+  
   
   if (room) {
     roomMap.get(roomId)?.forEach((socketItem, userName) => {
-      console.log(`user:${roomId}:${userName}`, room.players);
-      
-      socketItem.emit(`user:${roomId}:${userName}`, room.players)
+      socketItem.emit(`room:${roomId}`, {
+        ...room,
+        cards: undefined,
+      } as Omit<RoomInfo, 'cards'>)
+      socketItem.emit(`user:${roomId}:${userName}`, Array.from(room.players.values()))
     })
   }
 }
