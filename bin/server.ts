@@ -115,7 +115,9 @@ const websocketIo = new ServerIO(server, {
   }
 });
 
-const roomMap = new Map<string, Map<string, Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>>>();
+export type RoomSocketMapType = Map<string, Map<string, Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>>>;
+
+const roomMap: RoomSocketMapType = new Map();
 
 websocketIo.on('connection', socket => {
   const connectRoomSocket = socket.on('connectRoom', ({ roomId, userName } : { roomId: string; userName: string }) => {
@@ -126,7 +128,7 @@ websocketIo.on('connection', socket => {
       if (userMap) {
         userMap.set(userName, socket)
       } else {
-        roomMap.set(roomId, new Map().set(roomId, socket))
+        roomMap.set(roomId, new Map().set(userName, socket))
       }
     } else {
       roomMap.get(roomId)?.set(userName, socket);
@@ -151,19 +153,27 @@ websocketIo.on('connection', socket => {
 
     
     // report to all rooms
-    room.players.forEach(playerItem => {
-      roomMap.get(roomId)?.forEach(socketItem => {
-        socketItem.emit(`user:${roomId}:${playerItem.name}`, room.players)
-      })
-    })
+    reportToAllPlayersInRoom(roomId);
 
     // delete player from waiting room when it disconnects
     connectRoomSocket.on("disconnect", () => {
-      console.log('deletePlayerForRoom', roomId, userName);
       if (room.statu === 'waiting') {
-        deletePlayerForRoom(roomId, userName);
+        console.log('deletePlayerForRoom', roomId, userName);
+        deletePlayerForRoom(roomId, userName, roomMap);
       }
     });
   })
 })
+
+export function reportToAllPlayersInRoom(roomId:string) {
+  const room = getRoomInfo(roomId);
+  
+  if (room) {
+    roomMap.get(roomId)?.forEach((socketItem, userName) => {
+      console.log(`user:${roomId}:${userName}`, room.players);
+      
+      socketItem.emit(`user:${roomId}:${userName}`, room.players)
+    })
+  }
+}
 

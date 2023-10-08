@@ -1,3 +1,4 @@
+import { reportToAllPlayersInRoom, RoomSocketMapType } from "../bin/server";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { initAllCards } from "../utils/cards";
 
@@ -47,13 +48,17 @@ export const addPlayerForRoom = (roomId: string, addPlayer: PlayerInfoType) => {
   }
 }
 
-export const deletePlayerForRoom = (roomId: string, userName: string) => {
+export const deletePlayerForRoom = (roomId: string, userName: string, roomSocketMap: RoomSocketMapType) => {
   const room = roomMap.get(roomId)
 
-  if (room && !room.playerMap.has(userName)) {
+  if (room && room.playerMap.has(userName)) {
     const playerIndex =  room.players.findIndex(player => player.name === userName);
     room.players.splice(playerIndex, 1)
     room.playerMap.delete(userName);
+
+    // handle sockets
+    roomSocketMap.get(roomId)?.delete(userName);
+    reportToAllPlayersInRoom(roomId);
   }
 }
 
