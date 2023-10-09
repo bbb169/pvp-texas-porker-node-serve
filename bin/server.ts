@@ -122,6 +122,7 @@ const roomMap: RoomSocketMapType = new Map();
 
 websocketIo.on('connection', socket => {
   socket.on('connectRoom', ({ roomId, userName } : { roomId: string; userName: string }) => {
+    // ================= collect sockets =====================
     let socketMap = roomMap.get(roomId)?.get(userName);
 
     if (!socketMap) {
@@ -138,8 +139,7 @@ websocketIo.on('connection', socket => {
     }
     console.log(userName);
     
-    // ================= collect sockets =====================
-
+    // ================== create room and add player ===========
     let room: RoomInfo;
     let player: PlayerInfoType;
 
@@ -151,16 +151,8 @@ websocketIo.on('connection', socket => {
       player = creatPlayer(userName);
       room = createRoom(player, roomId)
     }
-
-    socket.emit(`room`, {
-      ...room,
-      cards: undefined,
-    } as Omit<RoomInfo, 'cards'>)
-
-    // ================== create room and add players ===========
-
     
-    // report to all rooms
+    // report to all rooms in front-end
     reportToAllPlayersInRoom(roomId);
 
     // delete player from waiting room when it disconnects
@@ -171,19 +163,13 @@ websocketIo.on('connection', socket => {
     });
 
     socket.on('startGame', () => {
-      const newRoom = startGame(roomId) as RoomInfo
+      startGame(roomId)
 
-      roomMap.get(roomId)?.forEach((socketItem, userName) => {
-        socketItem.emit(`room:${roomId}`, {
-          ...newRoom,
-          cards: undefined,
-        } as Omit<RoomInfo, 'cards'>)
-        socketItem.emit(`user`, Array.from(newRoom.players.values()))
-      })
+      reportToAllPlayersInRoom(roomId)
     })
 
     socket.on(`callChips`, (callChips?: number) => {
-      playerCallChips(roomId, userName,callChips).then(() => {
+      playerCallChips(roomId, userName, callChips).then(() => {
         reportToAllPlayersInRoom(roomId)
       })
     })
@@ -193,7 +179,6 @@ websocketIo.on('connection', socket => {
 export function reportToAllPlayersInRoom(roomId:string) {
   const room = getRoomInfo(roomId);
   console.log(room?.statu);
-  
   
   if (room) {
     roomMap.get(roomId)?.forEach((socketItem, userName) => {
