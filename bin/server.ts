@@ -132,8 +132,12 @@ websocketIo.on('connection', socket => {
         roomMap.set(roomId, new Map().set(userName, socket))
       }
     } else {
+      userName += '-1';
+      socket.emit('updateUserName', userName)
       roomMap.get(roomId)?.set(userName, socket);
     }
+    console.log(userName);
+    
     // ================= collect sockets =====================
 
     let room: RoomInfo;
@@ -148,7 +152,7 @@ websocketIo.on('connection', socket => {
       room = createRoom(player, roomId)
     }
 
-    socket.emit(`room:${roomId}`, {
+    socket.emit(`room`, {
       ...room,
       cards: undefined,
     } as Omit<RoomInfo, 'cards'>)
@@ -174,11 +178,11 @@ websocketIo.on('connection', socket => {
           ...newRoom,
           cards: undefined,
         } as Omit<RoomInfo, 'cards'>)
-        socketItem.emit(`user:${roomId}:${userName}`, Array.from(newRoom.players.values()))
+        socketItem.emit(`user`, Array.from(newRoom.players.values()))
       })
     })
 
-    socket.on(`callChips:${roomId}:${userName}`, (callChips?: number) => {
+    socket.on(`callChips`, (callChips?: number) => {
       playerCallChips(roomId, userName,callChips).then(() => {
         reportToAllPlayersInRoom(roomId)
       })
@@ -193,11 +197,20 @@ export function reportToAllPlayersInRoom(roomId:string) {
   
   if (room) {
     roomMap.get(roomId)?.forEach((socketItem, userName) => {
-      socketItem.emit(`room:${roomId}`, {
+      socketItem.emit(`room`, {
         ...room,
         cards: undefined,
       } as Omit<RoomInfo, 'cards'>)
-      socketItem.emit(`user:${roomId}:${userName}`, Array.from(room.players.values()))
+
+      const allPlayers = Array.from(room.players.values());
+
+      const myPlayerIndex = allPlayers.findIndex(player => player.name === userName)
+      const myPlayer = allPlayers.splice(myPlayerIndex, 1)[0];
+
+      socketItem.emit(`user`, {
+        myPlayer,
+        otherPlayers: allPlayers
+      })
     })
   }
 }
