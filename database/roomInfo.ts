@@ -5,14 +5,19 @@ import { distributeCards } from "../utils/cards";
 
 const roomMap = new Map<string, RoomInfo>();
 
+const initWaitingRommInfo: Omit<Omit<RoomInfo, 'buttonIndex'>, 'players'> = {
+  statu: 'waiting',
+  currentCallChips: 0,
+  currentHasChips: 0,
+  callingSteps: 0,
+  publicCards: []
+}
+
 export const createRoom = (createPlayer: PlayerInfoType, roomId: string) => {
   const roomInfo: RoomInfo = {
     buttonIndex: 0,
     players: new Map().set(createPlayer.name, createPlayer),
-    statu: 'waiting',
-    currentCallChips: 0,
-    currentHasChips: 0,
-    callingSteps: 0,
+    ...initWaitingRommInfo,
   }
 
   roomMap.set(roomId, roomInfo)
@@ -110,14 +115,23 @@ export function playerCallChips(roomId: string, userName: string, callChips?: nu
 
           if (!isEmpty(callChips)) {
             // ============== call ==============
-            if (player.holdCent < callChips) {
-              reject('called chips is too large')
-            }
-            if (room.currentCallChips > callChips + playerItem.calledChips) {
+            let finalCallChips: number = -1;
+            
+            // all in
+            if (player.holdCent <= callChips) {
+              finalCallChips = player.holdCent;
+            } else if (room.currentCallChips > callChips + playerItem.calledChips) {
               reject('called chips is too small')
+              return;
             }
-            player.calledChips += callChips
-            player.holdCent -= callChips
+
+            // is not all in, just use called chips
+            if (finalCallChips === -1) {
+              finalCallChips = callChips
+            }
+
+            player.calledChips += finalCallChips
+            player.holdCent -= finalCallChips
             player.status = 'waiting'
       
             room.currentCallChips = player.calledChips
@@ -127,6 +141,7 @@ export function playerCallChips(roomId: string, userName: string, callChips?: nu
             
             // lose chips
             room.currentHasChips += player.calledChips
+            player.calledChips = 0;
           }
         }
       })
@@ -173,7 +188,26 @@ function determineVictory(roomId: string) {
       typedPlayer.calledChips = 0;
       typedPlayer.holdCent += room.currentHasChips;
       room.statu = 'settling';
+      // all turn to front
+      room.publicCards?.forEach(card => card.showFace = 'front')
     }
+  }
+}
+
+export function turnToNextGame(roomId: string) {
+  const room = getRoomInfo(roomId)
+
+  if (room) {
+    room.players.forEach(player => {
+      player.holdCards = [];
+      player.status = 'waiting'
+    })
+
+    updateRoom(roomId, {
+      ...room,
+      buttonIndex: room.buttonIndex + 1,
+      ...initWaitingRommInfo,
+    })
   }
 }
 
@@ -181,10 +215,6 @@ export function startGame(roomId: string, isShortCard = false) {
   const room = getRoomInfo(roomId)
 
   if (room) {
-    if (room.buttonIndex !== 0) {
-      room.buttonIndex += 1
-    }
-
     const newRoom = distributeCards(room, isShortCard)
     updateRoom(roomId, newRoom)
   }

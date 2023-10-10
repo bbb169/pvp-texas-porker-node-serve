@@ -9,7 +9,7 @@ import path from "path";
 import app from "../app";
 import debug from "debug";
 import { Server as ServerIO, Socket  } from "socket.io";
-import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, deleteRoom, getRoomInfo, playerCallChips, startGame } from "../database/roomInfo";
+import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, deleteRoom, getRoomInfo, playerCallChips, startGame, turnToNextGame } from "../database/roomInfo";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 
@@ -218,10 +218,15 @@ websocketIo.on('connection', socket => {
       reportToAllPlayersInRoom(roomId)
     })
 
-    socket.on(`callChips`, (callChips?: number) => {
+    socket.on('callChips', (callChips?: number) => {
       playerCallChips(roomId, userName, callChips).then(() => {
         reportToAllPlayersInRoom(roomId)
       })
+    })
+
+    socket.on('turnToNextGame', () => {
+      turnToNextGame(roomId)
+      reportToAllPlayersInRoom(roomId)
     })
   })
 })

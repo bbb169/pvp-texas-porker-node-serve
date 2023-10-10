@@ -22,7 +22,7 @@ export interface PlayerInfoType {
 }
 
 export interface RoomInfo {
-  publicCards?: CardType[];
+  publicCards: CardType[];
   players: Map<string, PlayerInfoType>;
   buttonIndex: number;
   statu: 'waiting' | 'started' | 'settling';
