@@ -5,7 +5,7 @@ export type CardShowFace = 'front' | 'back';
 export interface CardType {
   key: string;
   color: 'diamonds' | 'hearts' | 'spades' | 'clubs';
-  number: number;
+  number: number | string;
   /** which face is the card toward to */
   showFace: 'front' | 'back';
   /** who is the card belong to */
