@@ -4,12 +4,16 @@ import { isEmpty } from "../utils";
 import { distributeCards } from "../utils/cards";
 
 const roomMap = new Map<string, RoomInfo>();
+export const bigBlindValue = 5;
+export const smallBlindValue = 3;
 
 const initWaitingRommInfo: Omit<Omit<RoomInfo, 'buttonIndex'>, 'players'> = {
   statu: 'waiting',
   currentCallChips: 0,
   currentHasChips: 0,
   callingSteps: 0,
+  bigBlind: bigBlindValue,
+  smallBlind: smallBlindValue,
   publicCards: []
 }
 
@@ -45,6 +49,7 @@ export const creatPlayer = (userName: string, roomId?: string): PlayerInfoType =
     holdCards: [],
     holdCent: 100,
     calledChips: 0,
+    blind: 0,
   }
 }
 
@@ -85,8 +90,6 @@ export function playerCallChips(roomId: string, userName: string, callChips?: nu
   return new Promise<string>((resolve, reject) => {
     const room = getRoomInfo(roomId)
 
-    let player: PlayerInfoType | undefined = undefined;
-    let firstPlayer: PlayerInfoType | undefined = undefined;
     let hasTurnToNext = false;
 
     const turnToNextCalling = (playerItem: PlayerInfoType) => {
@@ -99,20 +102,11 @@ export function playerCallChips(roomId: string, userName: string, callChips?: nu
     }
 
     if (room) {
-      // need to travel the players to find next player
-      room.players.forEach(playerItem => {
-        // =========== turn to next player ==============
-        if (player && !hasTurnToNext && !checkRoomCallEqual(roomId) && playerItem.status === 'waiting') {
-          turnToNextCalling(playerItem)
-        }
+      const playersQueue = Array.from(room.players.values());
 
-        if (!firstPlayer) {
-          firstPlayer = playerItem
-        }
-        // ============ change current player ==============
-        if (playerItem.name === userName) {
-          player = playerItem
-
+       
+      const targetPlayer = playersQueue.find(player => {
+        if (player.name === userName) {
           if (!isEmpty(callChips)) {
             // ============== call ==============
             let finalCallChips: number = -1;
@@ -120,16 +114,16 @@ export function playerCallChips(roomId: string, userName: string, callChips?: nu
             // all in
             if (player.holdCent <= callChips) {
               finalCallChips = player.holdCent;
-            } else if (room.currentCallChips > callChips + playerItem.calledChips) {
+            } else if (room.currentCallChips > callChips + player.calledChips || player.blind > player.calledChips + callChips) {
               reject('called chips is too small')
               return;
             }
-
+  
             // is not all in, just use called chips
             if (finalCallChips === -1) {
               finalCallChips = callChips
             }
-
+  
             player.calledChips += finalCallChips
             player.holdCent -= finalCallChips
             player.status = 'waiting'
@@ -143,23 +137,34 @@ export function playerCallChips(roomId: string, userName: string, callChips?: nu
             room.currentHasChips += player.calledChips
             player.calledChips = 0;
           }
+
+          return true;
         }
       })
 
-      // if didn't has turn to next yet, means player is at the last postion, so next one is at first place
-      const typedFirstPlayer = firstPlayer as unknown as PlayerInfoType
-      if (typedFirstPlayer.status !== 'fold' && !hasTurnToNext && !checkRoomCallEqual(roomId)) {
-        turnToNextCalling(typedFirstPlayer)
+      if (!targetPlayer) return;
+
+      let currentPosition = (targetPlayer.position + 1)%playersQueue.length;
+      while(!hasTurnToNext && currentPosition !== targetPlayer.position) {
+        const currentPlayer = playersQueue[currentPosition];
+        
+
+        console.log('currentPosition',currentPosition);
+        if (currentPlayer.status === 'waiting') {
+          turnToNextCalling(currentPlayer);
+        } else {
+          currentPosition = (currentPosition + 1)%(playersQueue.length - 1);
+        }
       }
 
       // if didn't has turn to next yet, means it's time to determine victory
       if (!hasTurnToNext) {
         determineVictory(roomId)
       }
-    }
 
-    if (checkRoomCallEqual(roomId) && room?.statu!== 'settling') {
-      turnToNextRound(roomId)
+      if (currentPosition === room.buttonIndex &&checkRoomCallEqual(roomId)) {
+        turnToNextRound(roomId)
+      }
     }
 
     resolve('success')
@@ -303,4 +308,21 @@ export const deleteRoom = (roomId: string) => {
 
 export const updateRoom = (roomId: string,room: RoomInfo) => {
   return roomMap.set(roomId, room)
+}
+
+export const getRoomSBOrBBPosition = (room: RoomInfo, type: 'SB' | 'BB'): number => {
+  let result = -1;
+
+  if (room) {
+    const tempPosition = room.buttonIndex - (type === 'BB' ? 2 : 1)
+
+    if (tempPosition < 0) {
+      // last one
+      result = room.players.size + tempPosition;
+    } else {
+      result = tempPosition;
+    }
+  }
+
+  return result
 }

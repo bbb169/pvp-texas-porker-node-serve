@@ -19,6 +19,7 @@ export interface PlayerInfoType {
     holdCards: CardType[];
     calledChips: number;
     holdCent: number;
+    blind: number;
 }
 
 export interface RoomInfo {
@@ -29,4 +30,6 @@ export interface RoomInfo {
   currentCallChips: number;
   currentHasChips: number;
   callingSteps: number;
+  smallBlind: number;
+  bigBlind: number;
 }

@@ -1,4 +1,5 @@
 import { AES } from "crypto-js";
+import { bigBlindValue, getRoomSBOrBBPosition, smallBlindValue } from "../database/roomInfo";
 import { CardColor, CardType, PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { privateKey } from "./const";
 
@@ -44,6 +45,10 @@ export function distributeCards(room: RoomInfo, shortCards = false): RoomInfo {
 
   // ========== distribute two cards to each player ==========
   const newPlayers = new Map<string, PlayerInfoType>();
+  const BBIndex = getRoomSBOrBBPosition(room,'BB')
+  const SBIndex = getRoomSBOrBBPosition(room,'SB')
+  console.log('bbbb',BBIndex,SBIndex);
+  
   players.forEach(player => {
     let holdCards = [];
 
@@ -56,10 +61,20 @@ export function distributeCards(room: RoomInfo, shortCards = false): RoomInfo {
       holdCards.push(getCard)
     }
 
+    const getBlind = () => {
+      if (player.position === BBIndex) {
+        return bigBlindValue
+      } else if (player.position === SBIndex){
+        return smallBlindValue
+      }
+      return 0;
+    }
+
     newPlayers.set(player.name, {
       ...player,
       holdCards,
       status: player.position === room.buttonIndex ? 'calling' : 'waiting',
+      blind: getBlind(),
     } as PlayerInfoType) 
   })
 
