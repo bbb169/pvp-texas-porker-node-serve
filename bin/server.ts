@@ -9,10 +9,9 @@ import path from "path";
 import app from "../app";
 import debug from "debug";
 import { Server as ServerIO, Socket  } from "socket.io";
-import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, deleteRoom, getRoomInfo, playerCallChips, startGame, updateRoom } from "../database/roomInfo";
+import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, deleteRoom, getRoomInfo, playerCallChips, startGame } from "../database/roomInfo";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
-import { distributeCards } from "../utils/cards";
 
 /**
  * 读取环境变量配置。
@@ -233,10 +232,7 @@ export function reportToAllPlayersInRoom(roomId:string) {
   
   if (room) {
     roomMap.get(roomId)?.forEach((socketItem, userName) => {
-      socketItem.emit(`room`, {
-        ...room,
-        cards: undefined,
-      } as Omit<RoomInfo, 'cards'>)
+      socketItem.emit(`room`, room)
 
       const allPlayers = Array.from(room.players.values());
 

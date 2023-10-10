@@ -37,6 +37,7 @@ export const creatPlayer = (userName: string, roomId?: string): PlayerInfoType =
     name: userName,
     position,
     status: 'waiting',
+    holdCards: [],
     holdCent: 100,
     calledChips: 0,
   }
