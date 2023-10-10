@@ -15,7 +15,7 @@ export interface CardType {
 export interface PlayerInfoType {
     name: string;
     position: number;
-    status: 'calling' | 'waiting' | 'fold';
+    status: 'disconnect' | 'calling' | 'waiting' | 'fold';
     holdCards?: CardType[];
     calledChips: number;
     holdCent: number;

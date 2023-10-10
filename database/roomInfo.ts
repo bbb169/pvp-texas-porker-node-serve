@@ -83,13 +83,21 @@ export function playerCallChips(roomId: string, userName: string, callChips?: nu
     let firstPlayer: PlayerInfoType | undefined = undefined;
     let hasTurnToNext = false;
 
+    const turnToNextCalling = (playerItem: PlayerInfoType) => {
+      room?.players.set(playerItem.name, {
+        ...playerItem,
+        status:'calling'
+      })
+
+      hasTurnToNext = true;
+    }
+
     if (room) {
       // need to travel the players to find next player
       room.players.forEach(playerItem => {
         // =========== turn to next player ==============
-        if (player && !hasTurnToNext && !checkRoomCallEqual(roomId) && playerItem.status !== 'fold') {
-          playerItem.status = 'calling'
-          hasTurnToNext = true
+        if (player && !hasTurnToNext && !checkRoomCallEqual(roomId) && playerItem.status === 'waiting') {
+          turnToNextCalling(playerItem)
         }
 
         if (!firstPlayer) {
@@ -122,14 +130,13 @@ export function playerCallChips(roomId: string, userName: string, callChips?: nu
         }
       })
 
+      // if didn't has turn to next yet, means player is at the last postion, so next one is at first place
       const typedFirstPlayer = firstPlayer as unknown as PlayerInfoType
       if (typedFirstPlayer.status !== 'fold' && !hasTurnToNext && !checkRoomCallEqual(roomId)) {
-        typedFirstPlayer.status = 'calling';
-        console.log(typedFirstPlayer.name, 'changed to calling');
-        
-        hasTurnToNext = true
+        turnToNextCalling(typedFirstPlayer)
       }
 
+      // if didn't has turn to next yet, means it's time to determine victory
       if (!hasTurnToNext) {
         determineVictory(roomId)
       }

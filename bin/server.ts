@@ -9,7 +9,7 @@ import path from "path";
 import app from "../app";
 import debug from "debug";
 import { Server as ServerIO, Socket  } from "socket.io";
-import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, getRoomInfo, playerCallChips, startGame, updateRoom } from "../database/roomInfo";
+import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, deleteRoom, getRoomInfo, playerCallChips, startGame, updateRoom } from "../database/roomInfo";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { distributeCards } from "../utils/cards";
@@ -122,10 +122,31 @@ const roomMap: RoomSocketMapType = new Map();
 
 websocketIo.on('connection', socket => {
   socket.on('connectRoom', ({ roomId, userName } : { roomId: string; userName: string }) => {
+    let room = getRoomInfo(roomId) as RoomInfo;
+    let player: PlayerInfoType | undefined = room?.players.get(userName);
+
+    if (room && room.statu !== 'waiting') {
+      if (player && player.status !== 'disconnect') {
+        socket.emit('refuseConnect', 'player has existed, please check username')
+        return;
+      }
+      if (!player) {
+        socket.emit('refuseConnect', 'this room has started, please go for another room')
+        return;
+      }
+    }
     // ================= collect sockets =====================
     let socketMap = roomMap.get(roomId)?.get(userName);
 
-    if (!socketMap) {
+    // reconnect
+    if (room && player?.status === 'disconnect') {
+      // add socket back
+      roomMap.get(roomId)?.set(userName, socket);
+      room.players.set(userName, {
+        ...player,
+        status: 'waiting'
+      })
+    } else if (!socketMap) {
       let userMap = roomMap.get(roomId)
       if (userMap) {
         userMap.set(userName, socket)
@@ -140,16 +161,17 @@ websocketIo.on('connection', socket => {
     console.log(userName);
     
     // ================== create room and add player ===========
-    let room: RoomInfo;
-    let player: PlayerInfoType;
-
+    // reasgin value to room
     room = getRoomInfo(roomId) as RoomInfo;
-    if (room) {
-      player = creatPlayer(userName, roomId);
-      addPlayerForRoom(roomId, player)
-    } else {
-      player = creatPlayer(userName);
-      room = createRoom(player, roomId)
+
+    if (!room?.players.has(userName)) {
+      if (room) {
+        player = creatPlayer(userName, roomId);
+        addPlayerForRoom(roomId, player)
+      } else {
+        player = creatPlayer(userName);
+        room = createRoom(player, roomId)
+      }
     }
     
     // report to all rooms in front-end
@@ -157,8 +179,37 @@ websocketIo.on('connection', socket => {
 
     // delete player from waiting room when it disconnects
     socket.on("disconnect", () => {
-      if (room.statu === 'waiting') {
-        deletePlayerForRoom(roomId, userName, roomMap);
+      roomMap.get(roomId)?.delete(userName);
+
+      const disconnectPlayer = room.players.get(userName)
+      room = getRoomInfo(roomId) as RoomInfo;
+
+      if (disconnectPlayer) {
+        if (room.statu === 'waiting') {
+          deletePlayerForRoom(roomId, userName, roomMap);
+        } else {
+          room.players.set(userName, {
+            ...disconnectPlayer,
+            status: 'disconnect'
+          })
+        }
+
+        // ========== check room whether is empty ============
+        let roomValidPlayerNum = room.players.size;
+
+        room.players.forEach(player => {
+          if (player.status === 'disconnect') {
+            roomValidPlayerNum--
+          }
+        })
+
+        if (!roomValidPlayerNum) {
+          deleteRoom(roomId);
+        } else {
+          console.log(disconnectPlayer.name, disconnectPlayer.status);
+          
+          reportToAllPlayersInRoom(roomId)
+        }
       }
     });
 
