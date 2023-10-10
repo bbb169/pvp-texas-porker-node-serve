@@ -1,16 +1,14 @@
 import { reportToAllPlayersInRoom, RoomSocketMapType } from "../bin/server";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { isEmpty } from "../utils";
-import { distributeCards, initAllCards } from "../utils/cards";
+import { distributeCards } from "../utils/cards";
 
 const roomMap = new Map<string, RoomInfo>();
 
-export const createRoom = (createPlayer: PlayerInfoType, roomId: string, shortCards = false) => {
-  const allCards = initAllCards(shortCards);
+export const createRoom = (createPlayer: PlayerInfoType, roomId: string) => {
   const roomInfo: RoomInfo = {
     buttonIndex: 0,
     players: new Map().set(createPlayer.name, createPlayer),
-    cards: allCards,
     statu: 'waiting',
     currentCallChips: 0,
     currentHasChips: 0,
@@ -171,7 +169,7 @@ function determineVictory(roomId: string) {
   }
 }
 
-export function startGame(roomId: string) {
+export function startGame(roomId: string, isShortCard = false) {
   const room = getRoomInfo(roomId)
 
   if (room) {
@@ -179,7 +177,7 @@ export function startGame(roomId: string) {
       room.buttonIndex += 1
     }
 
-    const newRoom = distributeCards(room)
+    const newRoom = distributeCards(room, isShortCard)
     updateRoom(roomId, newRoom)
   }
 

@@ -22,7 +22,6 @@ export interface PlayerInfoType {
 }
 
 export interface RoomInfo {
-  cards: CardType[];
   publicCards?: CardType[];
   players: Map<string, PlayerInfoType>;
   buttonIndex: number;

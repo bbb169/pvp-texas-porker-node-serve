@@ -24,16 +24,13 @@ export function initAllCards(shortCards = false) {
   return deck;
 }
 
-export function distributeCards(room: RoomInfo): RoomInfo {
-  const { cards, players } = room;
+export function distributeCards(room: RoomInfo, shortCards = false): RoomInfo {
+  const { players } = room;
+  const cards = initAllCards(shortCards);
+
   let restDeck: number[]
 
-  if (room.statu === 'waiting') {
-    restDeck = cards.map((_item,index) => index)
-  } else {
-    // init when room isn't first start
-    restDeck = initAllCards(room.cards.length < 52).map((_item,index) => index)
-  }
+  restDeck = cards.map((_item,index) => index)
   
   // random draw card
   function drawCard() {

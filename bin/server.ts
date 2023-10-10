@@ -162,9 +162,9 @@ websocketIo.on('connection', socket => {
       }
     });
 
-    socket.on('startGame', () => {
-      startGame(roomId)
-
+    socket.on('startGame', (isShortCard = false) => {
+      startGame(roomId, isShortCard)
+      
       reportToAllPlayersInRoom(roomId)
     })
 
