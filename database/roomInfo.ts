@@ -84,7 +84,6 @@ export const deletePlayerForRoom = (roomId: string, userName: string) => {
 export function playerCallChips(roomId: string, userName: string, callChips?: number) {
   return new Promise<[PlayerInfoType, number][] | void>((resolve) => {
     const room = getRoomInfo(roomId)
-    
 
     if (room) {
       const playersQueue = Array.from(room.players.values());
@@ -216,13 +215,12 @@ function checkRoomCallEqual(roomId: string) {
         return
       }
 
-      if (calledChips === -1 && player.status !== 'fold') {
+      // pass the fold player and all in player
+      if (calledChips === -1 && player.status !== 'fold' && player.holdCent !== 0) {
         calledChips = player.calledChips
       }
-      // find inequal calledChips and stop to check
-      if (player.status !== 'fold' && calledChips > -1 && calledChips !== player.calledChips) {
-        console.log(calledChips);
-        
+      // find inequal calledChips and stop to check, pass the fold player and all in player
+      if (player.status !== 'fold' && player.holdCent !== 0 && calledChips > -1 && calledChips !== player.calledChips) {
         calledChips = -2
         return;
       }
@@ -296,6 +294,7 @@ export function hanldePlayerCalledChips(roomId: string, player: PlayerInfoType, 
     // ================== transfer chips=======================
     player.calledChips += finalCallChips
     player.holdCent -= finalCallChips
+    player.roundCalled = true
     if (player.status === 'calling') {
       player.status = 'waiting'
     }
