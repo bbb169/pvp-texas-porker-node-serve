@@ -154,9 +154,10 @@ export const addRoomSocket = (roomId: string, userName: string, socket: Socket<D
     }
   } else {
     userName += '-1';
-    socket.emit('updateUserName', userName)
     roomMap.get(roomId)?.set(userName, socket);
   }
+
+  socket.emit('updateUserName', userName)
 
   return [roomId, userName]
 }
@@ -202,20 +203,34 @@ websocketIo.on('connection', socket => {
     // ==================== listeners ===================
 
     // delete player from waiting room when it disconnects
-    socket.on("disconnect", () => { 
-      socketDisconnect(roomId, userName) 
+    socket.on("disconnect", () => {
+      socketDisconnect(roomId, userName).then(validRoomNum => {
+        if (!validRoomNum) {
+          deleteRoom(roomId);
+          deleteRoomSocket(roomId);
+        } else {
+          deleteRoomSocket(roomId, userName);
+          reportToAllPlayersInRoom(roomId)
+        }
+      })
     });
 
     socket.on('startGame', (isShortCard = false) => {
-      socketStartGame(roomId,isShortCard)
+      socketStartGame(roomId,isShortCard).then(() => {
+        reportToAllPlayersInRoom(roomId)
+      })
     })
 
     socket.on('callChips', (callChips?: number) => {
-      socketCallChips(roomId, userName, callChips)
+      socketCallChips(roomId, userName, callChips).then(() => {
+        reportToAllPlayersInRoom(roomId)
+      })
     })
 
     socket.on('turnToNextGame', () => {
-      socketTurnToNextGame(roomId)
+      socketTurnToNextGame(roomId).then(() => {
+        reportToAllPlayersInRoom(roomId)
+      })
     })
   })
 })
