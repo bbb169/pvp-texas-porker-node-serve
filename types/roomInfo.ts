@@ -1,7 +1,6 @@
 export type CardColor = 'diamonds' | 'hearts' | 'spades' | 'clubs';
 export type CardStatu = 'undistributed' | 'distributed' | 'determineVictory';
 export type CardShowFace = 'front' | 'back';
-
 export interface CardType {
   key: string;
   color: 'diamonds' | 'hearts' | 'spades' | 'clubs';
@@ -34,4 +33,9 @@ export interface RoomInfo {
   callingSteps: number;
   smallBlind: number;
   bigBlind: number;
+}
+
+export interface VictoryInfo {
+  getChips: number,
+  cardName: string
 }
