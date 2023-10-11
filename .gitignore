@@ -8,3 +8,4 @@ public
 # 环境变量
 .env
 test_env.ts
+copyStatic.ts
