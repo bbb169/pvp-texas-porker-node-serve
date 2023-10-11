@@ -9,7 +9,7 @@ import path from "path";
 import app from "../app";
 import debug from "debug";
 import { Server as ServerIO, Socket  } from "socket.io";
-import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, deleteRoom, getRoomInfo, hanldePlayerCalledChips, playerCallChips, startGame, turnToNextGame } from "../database/roomInfo";
+import { addPlayerForRoom, createRoom, creatPlayer, deleteRoom, getRoomInfo } from "../database/roomInfo";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { socketCallChips, socketDisconnect, socketStartGame, socketTurnToNextGame } from "../routes/wbSocketListeners";
@@ -222,8 +222,11 @@ websocketIo.on('connection', socket => {
     })
 
     socket.on('callChips', (callChips?: number) => {
-      socketCallChips(roomId, userName, callChips).then(() => {
+      socketCallChips(roomId, userName, callChips).then((victoryPlayerMap: [PlayerInfoType, number][] | void) => {
         reportToAllPlayersInRoom(roomId)
+        if (victoryPlayerMap) {
+          socket.emit('victoryPlayers', victoryPlayerMap)
+        }
       })
     })
 

@@ -1,6 +1,4 @@
-import { reportToAllPlayersInRoom, RoomSocketMapType } from "../bin/server";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
-import { isEmpty } from "../utils";
 import { distributeCards } from "../utils/cards";
 
 const roomMap = new Map<string, RoomInfo>();
@@ -14,7 +12,7 @@ const initWaitingRommInfo: Omit<Omit<RoomInfo, 'buttonIndex'>, 'players'> = {
   callingSteps: 0,
   bigBlind: bigBlindValue,
   smallBlind: smallBlindValue,
-  publicCards: []
+  publicCards: [],
 }
 
 export const createRoom = (createPlayer: PlayerInfoType, roomId: string) => {
@@ -50,6 +48,7 @@ export const creatPlayer = (userName: string, roomId?: string): PlayerInfoType =
     holdCent: 100,
     calledChips: 0,
     blind: 0,
+    roundCalled: false,
   }
 }
 
@@ -60,7 +59,7 @@ export const addPlayerForRoom = (roomId: string, addPlayer: PlayerInfoType) => {
   }
 }
 
-export const deletePlayerForRoom = (roomId: string, userName: string, roomSocketMap: RoomSocketMapType) => {
+export const deletePlayerForRoom = (roomId: string, userName: string) => {
   const room = roomMap.get(roomId)
 
   if (room && room.players.has(userName)) {
@@ -77,109 +76,84 @@ export const deletePlayerForRoom = (roomId: string, userName: string, roomSocket
     if (playerIndex === -1) return;
 
     room.players.delete(userName)
-    
-    // handle sockets
-    roomSocketMap.get(roomId)?.delete(userName);
-    reportToAllPlayersInRoom(roomId);
   }
 }
 
 // ====================== game proccesses  ====================
 
 export function playerCallChips(roomId: string, userName: string, callChips?: number) {
-  return new Promise<string>((resolve, reject) => {
+  return new Promise<[PlayerInfoType, number][] | void>((resolve) => {
     const room = getRoomInfo(roomId)
-
-    let hasTurnToNext = false;
-
-    const turnToNextCalling = (playerItem: PlayerInfoType) => {
-      room?.players.set(playerItem.name, {
-        ...playerItem,
-        status:'calling'
-      })
-
-      hasTurnToNext = true;
-    }
+    
 
     if (room) {
       const playersQueue = Array.from(room.players.values());
 
-       
+      // =============== handle called chips =================       
       const targetPlayer = playersQueue.find(player => {
         if (player.name === userName) {
-          if (!isEmpty(callChips)) {
-            // ============== call ==============
-            let finalCallChips: number = -1;
-            
-            // all in
-            if (player.holdCent <= callChips) {
-              finalCallChips = player.holdCent;
-            } else if (room.currentCallChips > callChips + player.calledChips || player.blind > player.calledChips + callChips) {
-              reject('called chips is too small')
-              return;
-            }
-  
-            // is not all in, just use called chips
-            if (finalCallChips === -1) {
-              finalCallChips = callChips
-            }
-  
-            player.calledChips += finalCallChips
-            player.holdCent -= finalCallChips
-            player.status = 'waiting'
-      
-            room.currentCallChips = player.calledChips
-          } else {
-            // =============== fold ==============
-            player.status = 'fold'
-            
-            // lose chips
-            room.currentHasChips += player.calledChips
-            player.calledChips = 0;
-          }
-
+          hanldePlayerCalledChips(roomId, player, callChips)
           return true;
         }
+        return false;
       })
 
-      if (!targetPlayer) return;
+      if (!targetPlayer) {
+        resolve()
+        return
+      };
 
+      // ================= turn to next player calling =============
+      let hasTurnToNext = false;
       let currentPosition = (targetPlayer.position + 1)%playersQueue.length;
+      const turnToNextCalling = (playerItem: PlayerInfoType) => {
+        room?.players.set(playerItem.name, {
+          ...playerItem,
+          status:'calling'
+        })
+
+        hasTurnToNext = true;
+      }
+
       while(!hasTurnToNext && currentPosition !== targetPlayer.position) {
         const currentPlayer = playersQueue[currentPosition];
+        console.log('currentPlayer',currentPlayer.status, currentPlayer.name, currentPosition, targetPlayer.position);
         
-
-        console.log('currentPosition',currentPosition);
         if (currentPlayer.status === 'waiting') {
           turnToNextCalling(currentPlayer);
         } else {
-          currentPosition = (currentPosition + 1)%(playersQueue.length - 1);
+          if (currentPlayer.status === 'disconnect') {
+            hanldePlayerCalledChips(roomId, currentPlayer)
+          }
+          currentPosition = (currentPosition + 1)%(playersQueue.length);
         }
       }
 
+      console.log('hasTurnToNext',hasTurnToNext);
       // if didn't has turn to next yet, means it's time to determine victory
       if (!hasTurnToNext) {
-        determineVictory(roomId)
+        resolve(determineVictory(roomId))
       }
 
-      if (currentPosition === room.buttonIndex &&checkRoomCallEqual(roomId)) {
+      if (checkRoomRoundAllCalled(roomId) && checkRoomCallEqual(roomId)) {
         turnToNextRound(roomId)
       }
     }
 
-    resolve('success')
+    resolve()
   })
 }
 
-function determineVictory(roomId: string) {
+function determineVictory(roomId: string): [PlayerInfoType, number][] {
   const room = getRoomInfo(roomId)
+  let victoryPlayers:[PlayerInfoType, number][] = [];
 
   if (room) {
     let validPlayerNum = room.players.size;
     let validPlayer: PlayerInfoType | undefined = undefined;
 
     room.players.forEach(player => {
-      if (player.status === 'fold') {
+      if (player.status === 'fold' || player.status === 'disconnect') {
         validPlayerNum--
       } else {
         validPlayer = player
@@ -195,8 +169,12 @@ function determineVictory(roomId: string) {
       room.statu = 'settling';
       // all turn to front
       room.publicCards?.forEach(card => card.showFace = 'front')
+
+      victoryPlayers.push([typedPlayer, room.currentHasChips])
     }
   }
+
+  return victoryPlayers;
 }
 
 export function turnToNextGame(roomId: string) {
@@ -254,6 +232,86 @@ function checkRoomCallEqual(roomId: string) {
   }
 
   return false;
+}
+
+function checkRoomRoundAllCalled(roomId: string) {
+  const room = getRoomInfo(roomId)
+
+  let allCalled = true;
+
+  if (room) {
+    room.players.forEach(player => {
+      if (player.roundCalled === false && player.status !== 'disconnect' && player.status !== 'fold') {
+        allCalled = false
+      }
+    })
+  }
+
+  return allCalled;
+}
+
+function clearRoomRoundAllCalled(roomId: string, raisePlayer: PlayerInfoType) {
+  const room = getRoomInfo(roomId)
+  if (room) {
+    room.players.forEach(player => {
+      if (player.name === raisePlayer.name) {
+        return
+      }
+
+      room.players.set(player.name, {
+        ...player,
+        roundCalled: false,
+      })
+    })
+  }
+}
+
+/** if called chips less than minimum callable chips, will be regarded as fold */
+export function hanldePlayerCalledChips(roomId: string, player: PlayerInfoType, callChips = 0) {
+  const room = getRoomInfo(roomId)
+  if (room) {
+    let finalCallChips: number = -1;
+    
+    // ================= all in ==============
+    if (player.holdCent <= callChips) {
+      finalCallChips = player.holdCent;
+    } else if (Math.max(room.currentCallChips, player.blind) > callChips + player.calledChips) {
+      // ============== fold =================
+      if (player.status === 'calling') {
+        player.status = 'fold'
+      }
+      playerFold(roomId, player)
+    }
+
+    // ================= raise ================
+    if (room.currentCallChips < callChips + player.calledChips) {
+      clearRoomRoundAllCalled(roomId, player)
+    }
+
+    // is not all in, just use called chips
+    if (finalCallChips === -1) {
+      finalCallChips = callChips
+    }
+
+    // ================== transfer chips=======================
+    player.calledChips += finalCallChips
+    player.holdCent -= finalCallChips
+    if (player.status === 'calling') {
+      player.status = 'waiting'
+    }
+
+    room.currentCallChips = player.calledChips
+  }
+}
+
+/** player fold and lose its called chips */
+export function playerFold(roomId: string, player: PlayerInfoType) {
+  const room = getRoomInfo(roomId)
+
+  if (!room) return;
+
+  room.currentHasChips += player.calledChips,
+  player.calledChips = 0;
 }
 
 function turnToNextRound(roomId: string) {

@@ -20,6 +20,8 @@ export interface PlayerInfoType {
     calledChips: number;
     holdCent: number;
     blind: number;
+    /** whether called in one round */
+    roundCalled: boolean;
 }
 
 export interface RoomInfo {
