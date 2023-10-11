@@ -9,9 +9,10 @@ import path from "path";
 import app from "../app";
 import debug from "debug";
 import { Server as ServerIO, Socket  } from "socket.io";
-import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, deleteRoom, getRoomInfo, playerCallChips, startGame, turnToNextGame } from "../database/roomInfo";
+import { addPlayerForRoom, createRoom, creatPlayer, deletePlayerForRoom, deleteRoom, getRoomInfo, hanldePlayerCalledChips, playerCallChips, startGame, turnToNextGame } from "../database/roomInfo";
 import { PlayerInfoType, RoomInfo } from "../types/roomInfo";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { socketCallChips, socketDisconnect, socketStartGame, socketTurnToNextGame } from "../routes/wbSocketListeners";
 
 /**
  * 读取环境变量配置。
@@ -119,44 +120,63 @@ export type RoomSocketMapType = Map<string, Map<string, Socket<DefaultEventsMap,
 
 const roomMap: RoomSocketMapType = new Map();
 
+export const addRoomSocket = (roomId: string, userName: string, socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => {
+  let room = getRoomInfo(roomId) as RoomInfo;
+  let player: PlayerInfoType | undefined = room?.players.get(userName);
+
+  if (room && room.statu !== 'waiting') {
+    if (player && player.status !== 'disconnect') {
+      socket.emit('refuseConnect', 'player has existed, please check username')
+      return;
+    }
+    if (!player) {
+      socket.emit('refuseConnect', 'this room has started, please go for another room')
+      return;
+    }
+  }
+  // ================= collect sockets =====================
+  let socketMap = roomMap.get(roomId)?.get(userName);
+
+  // reconnect
+  if (room && player?.status === 'disconnect') {
+    // add socket back
+    roomMap.get(roomId)?.set(userName, socket);
+    room.players.set(userName, {
+      ...player,
+      status: 'waiting'
+    })
+  } else if (!socketMap) {
+    let userMap = roomMap.get(roomId)
+    if (userMap) {
+      userMap.set(userName, socket)
+    } else {
+      roomMap.set(roomId, new Map().set(userName, socket))
+    }
+  } else {
+    userName += '-1';
+    socket.emit('updateUserName', userName)
+    roomMap.get(roomId)?.set(userName, socket);
+  }
+}
+
+export const deleteRoomSocket = (roomId: string, userName?: string) => {
+  const room = roomMap.get(roomId);
+
+  if (!room) return;
+
+  if (userName) {
+    room.delete(userName)
+  } else {
+    roomMap.delete(roomId)
+  }
+}
+
 websocketIo.on('connection', socket => {
   socket.on('connectRoom', ({ roomId, userName } : { roomId: string; userName: string }) => {
     let room = getRoomInfo(roomId) as RoomInfo;
     let player: PlayerInfoType | undefined = room?.players.get(userName);
 
-    if (room && room.statu !== 'waiting') {
-      if (player && player.status !== 'disconnect') {
-        socket.emit('refuseConnect', 'player has existed, please check username')
-        return;
-      }
-      if (!player) {
-        socket.emit('refuseConnect', 'this room has started, please go for another room')
-        return;
-      }
-    }
-    // ================= collect sockets =====================
-    let socketMap = roomMap.get(roomId)?.get(userName);
-
-    // reconnect
-    if (room && player?.status === 'disconnect') {
-      // add socket back
-      roomMap.get(roomId)?.set(userName, socket);
-      room.players.set(userName, {
-        ...player,
-        status: 'waiting'
-      })
-    } else if (!socketMap) {
-      let userMap = roomMap.get(roomId)
-      if (userMap) {
-        userMap.set(userName, socket)
-      } else {
-        roomMap.set(roomId, new Map().set(userName, socket))
-      }
-    } else {
-      userName += '-1';
-      socket.emit('updateUserName', userName)
-      roomMap.get(roomId)?.set(userName, socket);
-    }
+    addRoomSocket(roomId, userName, socket)
     console.log(userName);
     
     // ================== create room and add player ===========
@@ -176,57 +196,23 @@ websocketIo.on('connection', socket => {
     // report to all rooms in front-end
     reportToAllPlayersInRoom(roomId);
 
+    // ==================== listeners ===================
+
     // delete player from waiting room when it disconnects
-    socket.on("disconnect", () => {
-      roomMap.get(roomId)?.delete(userName);
-
-      const disconnectPlayer = room.players.get(userName)
-      room = getRoomInfo(roomId) as RoomInfo;
-
-      if (disconnectPlayer) {
-        if (room.statu === 'waiting') {
-          deletePlayerForRoom(roomId, userName, roomMap);
-        } else {
-          room.players.set(userName, {
-            ...disconnectPlayer,
-            status: 'disconnect'
-          })
-        }
-
-        // ========== check room whether is empty ============
-        let roomValidPlayerNum = room.players.size;
-
-        room.players.forEach(player => {
-          if (player.status === 'disconnect') {
-            roomValidPlayerNum--
-          }
-        })
-
-        if (!roomValidPlayerNum) {
-          deleteRoom(roomId);
-        } else {
-          console.log(disconnectPlayer.name, disconnectPlayer.status);
-          
-          reportToAllPlayersInRoom(roomId)
-        }
-      }
+    socket.on("disconnect", () => { 
+      socketDisconnect(roomId, userName) 
     });
 
     socket.on('startGame', (isShortCard = false) => {
-      startGame(roomId, isShortCard)
-      
-      reportToAllPlayersInRoom(roomId)
+      socketStartGame(roomId,isShortCard)
     })
 
     socket.on('callChips', (callChips?: number) => {
-      playerCallChips(roomId, userName, callChips).then(() => {
-        reportToAllPlayersInRoom(roomId)
-      })
+      socketCallChips(roomId, userName, callChips)
     })
 
     socket.on('turnToNextGame', () => {
-      turnToNextGame(roomId)
-      reportToAllPlayersInRoom(roomId)
+      socketTurnToNextGame(roomId)
     })
   })
 })
