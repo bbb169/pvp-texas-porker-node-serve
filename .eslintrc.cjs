@@ -92,7 +92,7 @@ module.exports = {
         // 链式调用每行一个
         'newline-per-chained-call': ['error', { ignoreChainWithDepth: 3 }],
         // 禁止出现长度小于2的标识符
-        'id-length': ['error', { exceptions:['x', 'y', 'i', 'j', 'e'] }],
+        'id-length': ['error', { exceptions:['x', 'y', 'i', 'j', 'e', 'a', 'b'] }],
         // 在块作用域内上下禁止留空行
         'padded-blocks': [1, 'never'],
         // 禁止连续的空行

@@ -219,6 +219,7 @@ websocketIo.on('connection', socket => {
         socket.on('callChips', (callChips?: number) => {
             socketCallChips(roomId, userName, callChips).then((victoryPlayerMap: [PlayerInfoType, VictoryInfo][] | void) => {
                 reportToAllPlayersInRoom(roomId);
+                console.log('victoryPlayers', Boolean(victoryPlayerMap));
                 if (victoryPlayerMap) {
                     socket.emit('victoryPlayers', victoryPlayerMap);
                 }

@@ -1,6 +1,7 @@
 import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
 import { distributeCards, translateCardToString } from '../utils/cards';
 import { HandClassType, HandType } from './pokersolver';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const Hand = require('pokersolver').Hand as HandClassType;
 
 const roomMap = new Map<string, RoomInfo>();
@@ -130,17 +131,18 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
                 }
             }
 
-            console.log('hasTurnToNext', hasTurnToNext);
+            console.log('hasTurnToNext', hasTurnToNext, room.callingSteps);
             // if didn't has turn to next yet, means it's time to determine victory
             if (!hasTurnToNext) {
                 resolve(determineVictory(roomId));
             }
 
-            if (room.callingSteps === 3) {
-                resolve(determineVictory(roomId));
-            }
-
             if (checkRoomRoundAllCalled(roomId) && checkRoomCallEqual(roomId)) {
+                if (room.callingSteps === 3) {
+                    console.log('determineVictory');
+                    
+                    resolve(determineVictory(roomId));
+                }
                 turnToNextRound(roomId);
             }
         }
@@ -184,6 +186,8 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                 cardName: hand.name,
             }]];
         } else {
+            console.log('hrere');
+          
             // =================== compare cards ====================
             const publicCards = room.publicCards.map(card => translateCardToString(card.color, card.number));
             const handMap = new Map<HandType, PlayerInfoType>();
@@ -357,7 +361,6 @@ function turnToNextRound (roomId: string) {
     while (!buttonPlayer) {
         const curPlayer = room.players.values().next().value as PlayerInfoType;
     
-        console.log(curPlayer);
         if (curPlayer.position === room.buttonIndex) {
             buttonPlayer = curPlayer;
         }
