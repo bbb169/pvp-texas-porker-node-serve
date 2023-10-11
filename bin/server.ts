@@ -127,11 +127,11 @@ export const addRoomSocket = (roomId: string, userName: string, socket: Socket<D
   if (room && room.statu !== 'waiting') {
     if (player && player.status !== 'disconnect') {
       socket.emit('refuseConnect', 'player has existed, please check username')
-      return;
+      return [];
     }
     if (!player) {
       socket.emit('refuseConnect', 'this room has started, please go for another room')
-      return;
+      return [];
     }
   }
   // ================= collect sockets =====================
@@ -157,6 +157,8 @@ export const addRoomSocket = (roomId: string, userName: string, socket: Socket<D
     socket.emit('updateUserName', userName)
     roomMap.get(roomId)?.set(userName, socket);
   }
+
+  return [roomId, userName]
 }
 
 export const deleteRoomSocket = (roomId: string, userName?: string) => {
@@ -176,7 +178,8 @@ websocketIo.on('connection', socket => {
     let room = getRoomInfo(roomId) as RoomInfo;
     let player: PlayerInfoType | undefined = room?.players.get(userName);
 
-    addRoomSocket(roomId, userName, socket)
+    // add socket and update username
+    [roomId, userName] = addRoomSocket(roomId, userName, socket)
     console.log(userName);
     
     // ================== create room and add player ===========
