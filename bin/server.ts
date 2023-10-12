@@ -218,11 +218,12 @@ websocketIo.on('connection', socket => {
 
         socket.on('callChips', (callChips?: number) => {
             socketCallChips(roomId, userName, callChips).then((victoryPlayerMap: [PlayerInfoType, VictoryInfo][] | void) => {
-                reportToAllPlayersInRoom(roomId);
-                console.log('victoryPlayers', Boolean(victoryPlayerMap));
-                if (victoryPlayerMap) {
-                    socket.emit('victoryPlayers', victoryPlayerMap);
-                }
+                reportToAllPlayersInRoom(roomId, (socket) => {
+                    console.log('victoryPlayers', Boolean(victoryPlayerMap));
+                    if (victoryPlayerMap) {
+                        socket.emit('victoryPlayers', victoryPlayerMap);
+                    }
+                });
             });
         });
 
@@ -234,7 +235,7 @@ websocketIo.on('connection', socket => {
     });
 });
 
-export function reportToAllPlayersInRoom (roomId:string) {
+export function reportToAllPlayersInRoom (roomId:string, callback?: (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => void) {
     const room = getRoomInfo(roomId);
     console.log(room?.statu);
   
@@ -251,6 +252,8 @@ export function reportToAllPlayersInRoom (roomId:string) {
                 myPlayer,
                 otherPlayers: allPlayers,
             });
+
+            callback && callback(socketItem);
         });
     }
 }
