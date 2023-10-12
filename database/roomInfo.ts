@@ -256,6 +256,14 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                     player.holdCent += eachGetChips;
                 }
             });
+
+            winners.forEach((playerHand) => {
+                const player = handMap.get(playerHand);
+                if (!player) throw new Error('can find player');
+
+                player.holdCent += player.calledChips;
+                player.calledChips = 0;
+            });
         }
     }
 
