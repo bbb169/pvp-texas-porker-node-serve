@@ -192,13 +192,9 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
             // =================== compare cards ====================
             const publicCards = room.publicCards.map(card => translateCardToString(card.color, card.number));
             const handMap = new Map<HandClassType, PlayerInfoType>();
-            const foldPlayers: PlayerInfoType[] = [];
+            const players = Array.from(room.players.values());
 
-            const hands = Array.from(room.players.values()).map(player => {
-                if (player.status.includes('fold')) {
-                    foldPlayers.push(player);
-                }
-
+            const hands = players.map(player => {
                 const hand = Hand.solve([...publicCards, ...player.holdCards.map(card => translateCardToString(card.color, card.number))]);
 
                 handMap.set(hand, player);
@@ -216,7 +212,8 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                 } 
                 throw new Error('can find player');
             });
-            
+
+            const losePlayers: PlayerInfoType[] = players.filter(player => winners.every(hand => player.name !== handMap.get(hand)?.name));
 
             // handle
             room.statu = 'settling';
@@ -227,7 +224,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                 let evenlyChipsPool: number = 0;
 
                 // ====================== account get chips =====================
-                foldPlayers.forEach(player => {
+                losePlayers.forEach(player => {
                     if (!player.calledChips) return;
 
                     if (player.calledChips > getChips) {
