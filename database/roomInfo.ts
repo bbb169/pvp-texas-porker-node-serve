@@ -1,6 +1,6 @@
 import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
-import { distributeCards, translateCardToString } from '../utils/cards';
-import { HandClassType, HandType } from './pokersolver';
+import { distributeCards, translateCardToString, translateStringToCard } from '../utils/cards';
+import { HandClassType } from './pokersolver';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Hand = require('pokersolver').Hand as HandClassType;
 
@@ -191,7 +191,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
         } else {
             // =================== compare cards ====================
             const publicCards = room.publicCards.map(card => translateCardToString(card.color, card.number));
-            const handMap = new Map<HandType, PlayerInfoType>();
+            const handMap = new Map<HandClassType, PlayerInfoType>();
             const foldPlayers: PlayerInfoType[] = [];
 
             const hands = Array.from(room.players.values()).map(player => {
@@ -249,6 +249,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                     const preVictoryPlayerInfo:[PlayerInfoType, VictoryInfo] = victoryPlayers[handIndex] ? victoryPlayers[handIndex] : [player, {
                         cardName: winners[index].name,
                         getChips: 0,
+                        cards: winners[index].toArray().map(str => translateStringToCard(str)),
                     }];
 
                     victoryPlayers[handIndex] = [preVictoryPlayerInfo[0], {

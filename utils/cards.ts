@@ -1,9 +1,17 @@
+/* eslint-disable id-length */
 import { AES } from 'crypto-js';
 import { bigBlindValue, getRoomSBOrBBPosition, smallBlindValue } from '../database/roomInfo';
 import { CardColor, CardType, PlayerInfoType, RoomInfo } from '../types/roomInfo';
 import { privateKey } from './const';
 
 // [ 'A','2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+const suitMap: { [key: string]: CardColor} = {
+    h:'hearts', 
+    d:'diamonds', 
+    c:'clubs', 
+    s:'spades',
+};
+
 export function initAllCards (shortCards = false) {
     const suits: CardColor[] = ['hearts', 'diamonds', 'clubs', 'spades'];
     const ranks = shortCards ? ['A', 6, 7, 8, 9, 10, 'J', 'Q', 'K'] : ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K'];
@@ -94,5 +102,21 @@ export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
 }
 
 export function translateCardToString (color: string, number: string | number) {
+    if (number === 10) {
+        return `T${color[0]}`;
+    }
     return number + color[0];
+}
+
+export function translateStringToCard (str: string): CardType {
+    const rank = str.slice(0, str.length - 1);
+    const suit = suitMap[str[str.length - 1]];
+
+    return {
+        key: AES.encrypt(suit + rank, privateKey).toString(),
+        color: suit,
+        number: rank,
+        showFace: 'front',
+        statu: 'undistributed',
+    };
 }

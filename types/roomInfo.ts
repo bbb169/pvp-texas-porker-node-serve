@@ -38,6 +38,7 @@ export interface RoomInfo {
 }
 
 export interface VictoryInfo {
-  getChips: number,
-  cardName: string
+  getChips: number;
+  cardName: string;
+  cards?: CardType[];
 }
