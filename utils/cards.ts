@@ -70,7 +70,7 @@ export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
         newPlayers.set(player.name, {
             ...player,
             holdCards,
-            status: player.position === room.buttonIndex ? 'calling' : 'waiting',
+            status: player.position === room.buttonIndex ? ['calling'] : ['waiting'],
             blind: getBlind(),
         } as PlayerInfoType); 
     });

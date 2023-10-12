@@ -46,7 +46,7 @@ export const creatPlayer = (userName: string, roomId?: string): PlayerInfoType =
     return {
         name: userName,
         position,
-        status: 'waiting',
+        status: ['waiting'],
         holdCards: [],
         holdCent: 100,
         calledChips: 0,
@@ -111,7 +111,7 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
             const turnToNextCalling = (playerItem: PlayerInfoType) => {
                 room?.players.set(playerItem.name, {
                     ...playerItem,
-                    status:'calling',
+                    status:['calling'],
                 });
 
                 hasTurnToNext = true;
@@ -119,12 +119,11 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
 
             while(!hasTurnToNext && currentPosition !== targetPlayer.position) {
                 const currentPlayer = playersQueue[currentPosition];
-                console.log('currentPlayer', currentPlayer.status, currentPlayer.name, currentPosition, targetPlayer.position);
         
-                if (currentPlayer.status === 'waiting') {
+                if (currentPlayer.status.includes('waiting')) {
                     turnToNextCalling(currentPlayer);
                 } else {
-                    if (currentPlayer.status === 'disconnect') {
+                    if (currentPlayer.status.includes('disconnect')) {
                         hanldePlayerCalledChips(roomId, currentPlayer);
                     }
                     currentPosition = (currentPosition + 1) % (playersQueue.length);
@@ -139,8 +138,6 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
 
             if (checkRoomRoundAllCalled(roomId) && checkRoomCallEqual(roomId)) {
                 if (room.callingSteps === 3) {
-                    console.log('determineVictory');
-                    
                     resolve(determineVictory(roomId));
                 }
                 turnToNextRound(roomId);
@@ -156,12 +153,12 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
     let victoryPlayers:[PlayerInfoType, VictoryInfo][] = [];
 
     if (room) {
-    // ================== only one player valid ===============
+        // ================== only one player valid ===============
         let validPlayerNum = room.players.size;
         let validPlayer: PlayerInfoType | undefined = undefined;
 
         room.players.forEach(player => {
-            if (player.status === 'fold' || player.status === 'disconnect') {
+            if (player.status.includes('fold')) {
                 validPlayerNum--;
             } else {
                 validPlayer = player;
@@ -169,6 +166,12 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
         });
     
         if (validPlayerNum === 1) {
+            room.players.forEach(player => {
+                if (player.status.includes('fold')) {
+                    foldPlayerLoseToRoom(roomId, player);
+                }
+            });
+
             const typedPlayer = validPlayer as unknown as PlayerInfoType;
 
             typedPlayer.holdCent += typedPlayer.calledChips;
@@ -186,28 +189,74 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                 cardName: hand.name,
             }]];
         } else {
-            console.log('hrere');
-          
             // =================== compare cards ====================
             const publicCards = room.publicCards.map(card => translateCardToString(card.color, card.number));
             const handMap = new Map<HandType, PlayerInfoType>();
+            const foldPlayers: PlayerInfoType[] = [];
 
             const hands = Array.from(room.players.values()).map(player => {
+                if (player.status.includes('fold')) {
+                    foldPlayers.push(player);
+                }
+
                 const hand = Hand.solve([...publicCards, ...player.holdCards.map(card => translateCardToString(card.color, card.number))]);
 
                 handMap.set(hand, player);
                 return hand;
             });
 
-            const winners = Hand.winners(hands);
+            // ===================== handle winners chips account ================
+            // sort
+            const winners = Hand.winners(hands).sort((pre, cur) => {
+                const prePlayer = handMap.get(pre);
+                const curPlayer = handMap.get(cur);
 
-            victoryPlayers = winners.map(hand => {
-                const player = handMap.get(hand) as PlayerInfoType;
+                if (prePlayer && curPlayer) {
+                    return prePlayer.calledChips - curPlayer.calledChips;
+                } 
+                throw new Error('can find player');
+            });
+            
 
-                return [player, {
-                    getChips: 0,
-                    cardName: hand.name,
-                }];
+            // handle
+            room.statu = 'settling';
+            winners.forEach((playerHand, handIndex) => {
+                const player = handMap.get(playerHand);
+                if (!player) throw new Error('can find player');
+                const getChips = player.calledChips;
+                let evenlyChipsPool: number = 0;
+
+                // ====================== account get chips =====================
+                foldPlayers.forEach(player => {
+                    if (!player.calledChips) return;
+
+                    if (player.calledChips > getChips) {
+                        evenlyChipsPool += getChips;
+                        player.calledChips -= getChips;
+                    } else {
+                        evenlyChipsPool += player.calledChips;
+                        player.calledChips = 0;
+                    }
+                });
+
+                // =================== winners evnely chips ====================
+                const eachGetChips = evenlyChipsPool / (winners.length - handIndex);
+
+                for (let index = handIndex; index < winners.length; index++) {
+                    const player = handMap.get(winners[index]);
+                    if (!player) throw new Error('can find player');
+
+                    const preVictoryPlayerInfo:[PlayerInfoType, VictoryInfo] = victoryPlayers[handIndex] ? victoryPlayers[handIndex] : [player, {
+                        cardName: winners[index].name,
+                        getChips: 0,
+                    }];
+
+                    victoryPlayers[handIndex] = [preVictoryPlayerInfo[0], {
+                        ...preVictoryPlayerInfo[1],
+                        getChips: preVictoryPlayerInfo[1].getChips + eachGetChips,
+                    }];
+                    player.holdCent += eachGetChips;
+                }
             });
         }
     }
@@ -220,8 +269,12 @@ export function turnToNextGame (roomId: string) {
 
     if (room) {
         room.players.forEach(player => {
-            player.holdCards = [];
-            player.status = 'waiting';
+            if (player.status.includes('disconnect')) {
+                deletePlayerForRoom(roomId, player.name);
+            } else {
+                player.holdCards = [];
+                player.status = ['waiting'];
+            }
         });
 
         updateRoom(roomId, {
@@ -255,11 +308,11 @@ function checkRoomCallEqual (roomId: string) {
             }
 
             // pass the fold player and all in player
-            if (calledChips === -1 && player.status !== 'fold' && player.holdCent !== 0) {
+            if (calledChips === -1 && !player.status.includes('fold')  && player.holdCent !== 0) {
                 calledChips = player.calledChips;
             }
             // find inequal calledChips and stop to check, pass the fold player and all in player
-            if (player.status !== 'fold' && player.holdCent !== 0 && calledChips > -1 && calledChips !== player.calledChips) {
+            if (!player.status.includes('fold') && player.holdCent !== 0 && calledChips > -1 && calledChips !== player.calledChips) {
                 calledChips = -2;
                 return;
             }
@@ -278,7 +331,7 @@ function checkRoomRoundAllCalled (roomId: string) {
 
     if (room) {
         room.players.forEach(player => {
-            if (player.roundCalled === false && player.status !== 'disconnect' && player.status !== 'fold') {
+            if (player.roundCalled === false && player.status.includes('calling') && player.status.includes('waiting')) {
                 allCalled = false;
             }
         });
@@ -314,10 +367,12 @@ export function hanldePlayerCalledChips (roomId: string, player: PlayerInfoType,
             finalCallChips = player.holdCent;
         } else if (Math.max(room.currentCallChips, player.blind) > callChips + player.calledChips) {
             // ============== fold =================
-            if (player.status === 'calling') {
-                player.status = 'fold';
+            if (player.status.includes('calling')) {
+                player.status = ['fold'];
+            } else if (player.status.includes('disconnect')) {
+                player.status = ['fold', 'disconnect'];
             }
-            playerFold(roomId, player);
+            // playerFold(roomId, player);
         }
 
         // ================= raise ================
@@ -334,8 +389,8 @@ export function hanldePlayerCalledChips (roomId: string, player: PlayerInfoType,
         player.calledChips += finalCallChips;
         player.holdCent -= finalCallChips;
         player.roundCalled = true;
-        if (player.status === 'calling') {
-            player.status = 'waiting';
+        if (player.status.includes('calling')) {
+            player.status = ['waiting'];
         }
 
         room.currentCallChips = player.calledChips;
@@ -343,7 +398,7 @@ export function hanldePlayerCalledChips (roomId: string, player: PlayerInfoType,
 }
 
 /** player fold and lose its called chips */
-export function playerFold (roomId: string, player: PlayerInfoType) {
+export function foldPlayerLoseToRoom (roomId: string, player: PlayerInfoType) {
     const room = getRoomInfo(roomId);
 
     if (!room) return;
@@ -368,7 +423,7 @@ function turnToNextRound (roomId: string) {
 
     if (!buttonPlayer) return;
 
-    buttonPlayer.status = 'calling';
+    buttonPlayer.status = ['calling'];
     // first calling to equal will filp three cards
     if (room.callingSteps === 0) {
         if (room.publicCards) {

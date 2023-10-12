@@ -1,4 +1,5 @@
 import { deletePlayerForRoom, getRoomInfo, playerCallChips, startGame, turnToNextGame } from '../database/roomInfo';
+import { PlayerInfoStatusType } from '../types/roomInfo';
 
 export function socketDisconnect (roomId: string, userName: string) {
     return new Promise<number>((resolve) => {
@@ -7,21 +8,19 @@ export function socketDisconnect (roomId: string, userName: string) {
 
         if (!room) return;
         const disconnectPlayer = room.players.get(userName);
-        console.log('disconnectPlayer', disconnectPlayer?.status);
     
         if (disconnectPlayer) {
             if (room.statu === 'waiting') {
                 deletePlayerForRoom(roomId, userName);
             } else {
-                if (disconnectPlayer?.status === 'calling') {
-                    console.log('playerCallChips()', roomId, userName);
-          
+                if (disconnectPlayer?.status.includes('calling')) {
                     playerCallChips(roomId, userName);
                 }
 
+                const finalStatus: PlayerInfoStatusType[] = disconnectPlayer.status.includes('fold') ? ['fold', 'disconnect'] : ['disconnect']; 
                 room.players.set(userName, {
                     ...disconnectPlayer,
-                    status: 'disconnect',
+                    status: finalStatus,
                 });
             }
 
@@ -29,7 +28,7 @@ export function socketDisconnect (roomId: string, userName: string) {
             let roomValidPlayerNum = room.players.size;
 
             room.players.forEach(player => {
-                if (player.status === 'disconnect') {
+                if (player.status.includes('disconnect')) {
                     roomValidPlayerNum--;
                 }
             });

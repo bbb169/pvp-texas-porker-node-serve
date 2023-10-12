@@ -1,5 +1,5 @@
 export type CardColor = 'diamonds' | 'hearts' | 'spades' | 'clubs';
-export type CardStatu = 'undistributed' | 'distributed' | 'determineVictory';
+export type CardStatu = 'undistributed' | 'distributed';
 export type CardShowFace = 'front' | 'back';
 export interface CardType {
   key: string;
@@ -9,12 +9,14 @@ export interface CardType {
   showFace: 'front' | 'back';
   /** who is the card belong to */
   holder?: string;
-  statu: 'undistributed' | 'distributed' | 'determineVictory';
+  statu: 'undistributed' | 'distributed';
 }
+
+export type PlayerInfoStatusType = 'disconnect' | 'calling' | 'waiting' | 'fold';
 export interface PlayerInfoType {
     name: string;
     position: number;
-    status: 'disconnect' | 'calling' | 'waiting' | 'fold';
+    status: PlayerInfoStatusType[];
     holdCards: CardType[];
     calledChips: number;
     holdCent: number;

@@ -120,7 +120,7 @@ export const addRoomSocket = (roomId: string, userName: string, socket: Socket<D
     const player: PlayerInfoType | undefined = room?.players.get(userName);
 
     if (room && room.statu !== 'waiting') {
-        if (player && player.status !== 'disconnect') {
+        if (player && !player.status.includes('disconnect')) {
             socket.emit('refuseConnect', 'player has existed, please check username');
             return [];
         }
@@ -133,12 +133,12 @@ export const addRoomSocket = (roomId: string, userName: string, socket: Socket<D
     const socketMap = roomMap.get(roomId)?.get(userName);
 
     // reconnect
-    if (room && player?.status === 'disconnect') {
+    if (room && player?.status.includes('disconnect')) {
     // add socket back
         roomMap.get(roomId)?.set(userName, socket);
         room.players.set(userName, {
             ...player,
-            status: 'waiting',
+            status: ['waiting'],
         });
     } else if (!socketMap) {
         const userMap = roomMap.get(roomId);
