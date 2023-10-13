@@ -13,6 +13,7 @@ import { addPlayerForRoom, createRoom, creatPlayer, deleteRoom, getRoomInfo } fr
 import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { socketCallChips, socketDisconnect, socketStartGame, socketTurnToNextGame } from '../routes/wbSocketListeners';
+import { getGptPredicate } from '../controller/gptPredicate';
 
 /**
  * 读取环境变量配置。
@@ -211,18 +212,23 @@ websocketIo.on('connection', socket => {
         });
 
         socket.on('startGame', (isShortCard = false) => {
+            room.isShortCards = isShortCard;
             socketStartGame(roomId, isShortCard).then(() => {
                 reportToAllPlayersInRoom(roomId);
             });
         });
 
         socket.on('callChips', (callChips?: number) => {
-            socketCallChips(roomId, userName, callChips).then((victoryPlayerMap: [PlayerInfoType, VictoryInfo][] | void) => {
+            socketCallChips(roomId, userName, callChips).then((callChipsRes: [PlayerInfoType, VictoryInfo][] | boolean) => {
                 reportToAllPlayersInRoom(roomId, (socket) => {
-                    console.log('victoryPlayers', Boolean(victoryPlayerMap));
-                    if (victoryPlayerMap) {
-                        socket.emit('victoryPlayers', victoryPlayerMap);
+                    // =================== victoryPlayers ==============
+                    if (Array.isArray(callChipsRes)) {
+                        socket.emit('victoryPlayers', callChipsRes);
                     }
+                    // ================= getGptPredicate ==============
+                    // if (callChipsRes === true && currentPlayer.status.includes('calling')) {
+                    //     getGptPredicate(roomId, currentPlayer, room.isShortCards).then(res => socket.emit('getGptPredicate', res));
+                    // }
                 });
             });
         });
@@ -235,14 +241,13 @@ websocketIo.on('connection', socket => {
     });
 });
 
-export function reportToAllPlayersInRoom (roomId:string, callback?: (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>) => void) {
+export function reportToAllPlayersInRoom (roomId:string, callback?: (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, player: PlayerInfoType) => void) {
     const room = getRoomInfo(roomId);
     console.log(room?.statu);
   
     if (room) {
         roomMap.get(roomId)?.forEach((socketItem, userName) => {
             socketItem.emit('room', room);
-
             const allPlayers = Array.from(room.players.values());
 
             const myPlayerIndex = allPlayers.findIndex(player => player.name === userName);
@@ -253,7 +258,7 @@ export function reportToAllPlayersInRoom (roomId:string, callback?: (socket: Soc
                 otherPlayers: allPlayers,
             });
 
-            callback && callback(socketItem);
+            callback && callback(socketItem, myPlayer);
         });
     }
 }

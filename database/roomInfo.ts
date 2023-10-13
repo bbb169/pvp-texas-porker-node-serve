@@ -1,6 +1,6 @@
 import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
 import { distributeCards, translateCardToString, translateStringToCard } from '../utils/cards';
-import { HandClassType } from './pokersolver';
+import { HandClassType } from '../types/pokersolver';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Hand = require('pokersolver').Hand as HandClassType;
 
@@ -16,6 +16,7 @@ const initWaitingRommInfo: Omit<Omit<RoomInfo, 'buttonIndex'>, 'players'> = {
     bigBlind: bigBlindValue,
     smallBlind: smallBlindValue,
     publicCards: [],
+    isShortCards: false,
 };
 
 export const createRoom = (createPlayer: PlayerInfoType, roomId: string) => {
@@ -85,8 +86,9 @@ export const deletePlayerForRoom = (roomId: string, userName: string) => {
 // ====================== game proccesses  ====================
 
 export function playerCallChips (roomId: string, userName: string, callChips?: number) {
-    return new Promise<[PlayerInfoType, VictoryInfo][] | void>((resolve) => {
+    return new Promise<[PlayerInfoType, VictoryInfo][] | boolean>((resolve) => {
         const room = getRoomInfo(roomId);
+        let hasTurnToNextRound = false;
 
         if (room) {
             const playersQueue = Array.from(room.players.values());
@@ -101,7 +103,7 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
             });
 
             if (!targetPlayer) {
-                resolve();
+                resolve(hasTurnToNextRound);
                 return;
             }
 
@@ -141,10 +143,11 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
                     resolve(determineVictory(roomId));
                 }
                 turnToNextRound(roomId);
+                hasTurnToNextRound = true;
             }
         }
 
-        resolve();
+        resolve(hasTurnToNextRound);
     });
 }
 

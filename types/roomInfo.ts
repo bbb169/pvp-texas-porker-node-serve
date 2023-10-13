@@ -35,6 +35,7 @@ export interface RoomInfo {
   callingSteps: number;
   smallBlind: number;
   bigBlind: number;
+  isShortCards: boolean;
 }
 
 export interface VictoryInfo {
