@@ -281,6 +281,7 @@ export function turnToNextGame (roomId: string) {
             if (player.status.includes('disconnect')) {
                 deletePlayerForRoom(roomId, player.name);
             } else {
+                player.roundCalled = false;
                 player.holdCards = [];
                 player.status = ['waiting'];
             }
@@ -420,17 +421,11 @@ function turnToNextRound (roomId: string) {
     const room = getRoomInfo(roomId);
     if (!room) return;
 
-    let buttonPlayer: PlayerInfoType | undefined = undefined;
+    const buttonPlayer = Array.from(room.players.values()).find(player => player.position === room.buttonIndex);
 
-    while (!buttonPlayer) {
-        const curPlayer = room.players.values().next().value as PlayerInfoType;
-    
-        if (curPlayer.position === room.buttonIndex) {
-            buttonPlayer = curPlayer;
-        }
+    if (!buttonPlayer) {
+        throw new Error('didn\'t find buttonPlayer');
     }
-
-    if (!buttonPlayer) return;
 
     buttonPlayer.status = ['calling'];
     // first calling to equal will filp three cards
@@ -443,8 +438,6 @@ function turnToNextRound (roomId: string) {
             });
             room.callingSteps += 1;
         }
-    } else if (room.callingSteps === 3) {
-    // determine victory
     } else {
     // filp next one card in other situation
         const nextCard = room.publicCards?.find(card => card.showFace === 'back');
