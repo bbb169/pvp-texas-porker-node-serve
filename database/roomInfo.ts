@@ -109,21 +109,14 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
             // ================= turn to next player calling =============
             let hasTurnToNext = false;
             let currentPosition = (targetPlayer.position + 1) % playersQueue.length;
-            const turnToNextCalling = (playerItem: PlayerInfoType) => {
-                room?.players.set(playerItem.name, {
-                    ...playerItem,
-                    status:['calling'],
-                });
-
-                hasTurnToNext = true;
-            };
 
             while(!hasTurnToNext && currentPosition !== targetPlayer.position) {
                 const currentPlayer = playersQueue[currentPosition];
-        
-                if (currentPlayer.status.includes('waiting')) {
-                    turnToNextCalling(currentPlayer);
-                } else {
+
+                if (currentPlayer.status.includes('waiting')) { // turn to next
+                    currentPlayer.status = ['calling'];
+                    hasTurnToNext = true;
+                } else { // pass
                     if (currentPlayer.status.includes('disconnect')) {
                         hanldePlayerCalledChips(roomId, currentPlayer);
                     }
@@ -131,7 +124,7 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
                 }
             }
 
-            console.log('hasTurnToNext', hasTurnToNext, room.callingSteps);
+            console.log('hasTurnToNext', hasTurnToNext, room.callingSteps, targetPlayer.status);
             // if didn't has turn to next yet, means it's time to determine victory
             if (!hasTurnToNext) {
                 resolve(determineVictory(roomId));
@@ -397,6 +390,8 @@ export function hanldePlayerCalledChips (roomId: string, player: PlayerInfoType,
         player.roundCalled = true;
         if (player.status.includes('calling')) {
             player.status = ['waiting'];
+        } else {
+            console.log('didn\'t change it', player.status);
         }
 
         room.currentCallChips = player.calledChips;
@@ -421,6 +416,8 @@ function turnToNextRound (roomId: string) {
         player.roundCalled = false;
         if (player.position === room.buttonIndex) {
             player.status = ['calling'];
+        } else if (player.status.includes('calling')) {
+            player.status = ['waiting'];
         }
     });
 
