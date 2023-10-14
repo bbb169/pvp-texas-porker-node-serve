@@ -341,7 +341,7 @@ function checkRoomRoundAllCalled (roomId: string) {
 
     if (room) {
         room.players.forEach(player => {
-            if (player.roundCalled === false && player.status.includes('calling') && player.status.includes('waiting')) {
+            if (player.roundCalled === false && (player.status.includes('calling') || player.status.includes('waiting'))) {
                 allCalled = false;
             }
         });
@@ -421,13 +421,13 @@ function turnToNextRound (roomId: string) {
     const room = getRoomInfo(roomId);
     if (!room) return;
 
-    const buttonPlayer = Array.from(room.players.values()).find(player => player.position === room.buttonIndex);
+    room.players.forEach(player => {
+        player.roundCalled = false;
+        if (player.position === room.buttonIndex) {
+            player.status = ['calling'];
+        }
+    });
 
-    if (!buttonPlayer) {
-        throw new Error('didn\'t find buttonPlayer');
-    }
-
-    buttonPlayer.status = ['calling'];
     // first calling to equal will filp three cards
     if (room.callingSteps === 0) {
         if (room.publicCards) {
