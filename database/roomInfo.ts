@@ -366,6 +366,9 @@ export function hanldePlayerCalledChips (roomId: string, player: PlayerInfoType,
             finalCallChips = player.holdCent;
         } else if (Math.max(room.currentCallChips, player.blind) > callChips + player.calledChips) {
             // ============== fold =================
+            if (player.calledChips < player.blind) {
+                finalCallChips = player.blind;
+            }
             if (player.status.includes('calling')) {
                 player.status = ['fold'];
             } else if (player.status.includes('disconnect')) {
