@@ -245,10 +245,10 @@ websocketIo.on('connection', socket => {
         function heartBeatDetect () {
             socket.timeout(10000).emit('heartbeat', 'heartbeat-ack', (err: unknown) => {
                 if (err) {
-                    console.log('heartbeat-ack err', err);
-                    
                     socket.disconnect();
                     deletCurrentPlayer();
+                    
+                    console.log('heartbeat-ack err', err, roomMap.size);
                 } else {
                     heartBeatDetect();
                 }
