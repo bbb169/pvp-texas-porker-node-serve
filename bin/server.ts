@@ -197,20 +197,6 @@ websocketIo.on('connection', socket => {
         reportToAllPlayersInRoom(roomId);
 
         // ==================== listeners ===================
-
-        // delete player from waiting room when it disconnects
-        socket.on('disconnect', () => {
-            socketDisconnect(roomId, userName).then(validRoomNum => {
-                if (!validRoomNum) {
-                    deleteRoom(roomId);
-                    deleteRoomSocket(roomId);
-                } else {
-                    deleteRoomSocket(roomId, userName);
-                    reportToAllPlayersInRoom(roomId);
-                }
-            });
-        });
-
         socket.on('startGame', (isShortCard = false) => {
             room.isShortCards = isShortCard;
             socketStartGame(roomId, isShortCard).then(() => {
@@ -238,6 +224,37 @@ websocketIo.on('connection', socket => {
                 reportToAllPlayersInRoom(roomId);
             });
         });
+
+        // ================== handle disconnect =====================
+        function deletCurrentPlayer () {
+            socketDisconnect(roomId, userName).then(validRoomNum => {
+                if (!validRoomNum) {
+                    deleteRoom(roomId);
+                    deleteRoomSocket(roomId);
+                } else {
+                    deleteRoomSocket(roomId, userName);
+                    reportToAllPlayersInRoom(roomId);
+                }
+            });
+        }
+        // delete player from waiting room when it disconnects
+        socket.on('disconnect', () => {
+            deletCurrentPlayer();
+        });
+
+        function heartBeatDetect () {
+            socket.timeout(10000).emit('heartbeat', 'heartbeat-ack', (err: unknown) => {
+                if (err) {
+                    console.log('heartbeat-ack err', err);
+                    
+                    socket.disconnect();
+                    deletCurrentPlayer();
+                } else {
+                    heartBeatDetect();
+                }
+            });
+        }
+        heartBeatDetect();
     });
 });
 
