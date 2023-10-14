@@ -357,10 +357,7 @@ function clearRoomRoundAllCalled (roomId: string, raisePlayer: PlayerInfoType) {
                 return;
             }
 
-            room.players.set(player.name, {
-                ...player,
-                roundCalled: false,
-            });
+            player.roundCalled = false;
         });
     }
 }
