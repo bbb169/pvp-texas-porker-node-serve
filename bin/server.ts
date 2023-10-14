@@ -14,6 +14,7 @@ import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { socketCallChips, socketDisconnect, socketStartGame, socketTurnToNextGame } from '../routes/wbSocketListeners';
 import { getGptPredicate } from '../controller/gptPredicate';
+import Hand from '../utils/pokersolver';
 
 /**
  * 读取环境变量配置。
@@ -173,6 +174,7 @@ export const deleteRoomSocket = (roomId: string, userName?: string) => {
     }
 };
 
+console.log(Hand.solve(['As', '6s', '7s', '8s', '9s', 'Ks', 'Qs'], 'standard').name, Hand.solve(['As', '6s', '7s', '8s', '9s', 'Ts', 'Qs'], 'shortCardsStandard').name, Hand.solve(['As', 'Js', 'Qs', 'Ks', '9s', 'Ts', '6s'], 'shortCardsStandard').name, Hand.solve(['As', 'Js', 'Kh', 'Ks', 'Kd', 'Kc', '6s'], 'shortCardsStandard').name);
 websocketIo.on('connection', socket => {
     socket.on('connectRoom', ({ roomId, userName } : { roomId: string; userName: string }) => {
         let room = getRoomInfo(roomId) as RoomInfo;

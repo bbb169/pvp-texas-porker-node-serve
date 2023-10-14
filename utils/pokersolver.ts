@@ -1,3 +1,4 @@
+/* eslint-disable prefer-spread */
 /* eslint-disable prefer-const */
 /* eslint-disable id-length */
 /* eslint-disable no-var */
@@ -41,7 +42,7 @@ class Hand {
     cards: any[];
     suits: { [key: string]: {
         suit: string; rank: number; 
-}[] };
+    }[] };
     values: any[];
     wilds: any[];
     name: any;
@@ -113,7 +114,7 @@ class Hand {
                 this.values[card.rank].push(card);
             }
         }
-
+        
         this.values.reverse();
         this.isPossible = (this as any).solve();
     }
@@ -331,12 +332,10 @@ class Hand {
         cards = cards || [''];
         if (game.descr === 'shortCardsStandard') {
             values = ['1', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
-            console.log('shortCardsStandard');
         } else {
             values = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
-            console.log(game.descr);
         }
-
+        
         const hands = game.handValues;
         let result = null;
 
@@ -791,7 +790,7 @@ class Straight extends Hand {
 
                 if (diff === null) {
                     cardsList.push(card);
-                } else if (checkHandLength! < (gapCount + diff + cardsList.length)) {
+                } else if ((checkHandLength as number) < (gapCount + diff + cardsList.length)) {
                     break;
                 } else if (diff > 0) {
                     cardsList.push(card);
@@ -1038,7 +1037,7 @@ const gameRules: { [key: string]: any } = {
     },
     shortCardsStandard: {
         cardsInHand: 5,
-        handValues: [StraightFlush, FourOfAKind, Flush, FullHouse,  Straight, ThreeOfAKind, TwoPair, OnePair, HighCard],
+        handValues: [StraightFlush, FourOfAKind, Flush, FullHouse, Straight, ThreeOfAKind, TwoPair, OnePair, HighCard],
         wildValue: null,
         wildStatus: 1,
         wheelStatus: 0,

@@ -88,7 +88,7 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
     return new Promise<[PlayerInfoType, VictoryInfo][] | boolean>((resolve) => {
         const room = getRoomInfo(roomId);
         let hasTurnToNextRound = false;
-
+        
         if (room) {
             const playersQueue = Array.from(room.players.values());
 
@@ -274,7 +274,7 @@ export function turnToNextGame (roomId: string) {
 
         updateRoom(roomId, {
             ...room,
-            buttonIndex: room.buttonIndex + 1,
+            buttonIndex: room.buttonIndex === room.players.size - 1 ? 0 : room.buttonIndex + 1,
             ...initWaitingRommInfo,
         });
     }
