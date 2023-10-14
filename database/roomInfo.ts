@@ -103,8 +103,7 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
             });
 
             if (!targetPlayer) {
-                resolve(hasTurnToNextRound);
-                return;
+                throw new Error('playerCallChips can\'t find targetPlayer');
             }
 
             // ================= turn to next player calling =============
