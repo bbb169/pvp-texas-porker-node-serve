@@ -246,12 +246,19 @@ export function reportToAllPlayersInRoom (roomId:string, callback?: (socket: Soc
     console.log(room?.statu);
   
     if (room) {
+        const playerMap: Map<string, PlayerInfoType> = new Map();
+        room.players.forEach(player => {
+            playerMap.set(player.name, player);
+        });
+
         roomMap.get(roomId)?.forEach((socketItem, userName) => {
             socketItem.emit('room', room);
-            const allPlayers = Array.from(room.players.values());
+            const myPlayer = playerMap.get(userName);
 
-            const myPlayerIndex = allPlayers.findIndex(player => player.name === userName);
-            const myPlayer = allPlayers.splice(myPlayerIndex, 1)[0];
+            if (!myPlayer) throw new Error(`reportToAllPlayersInRoom did not find myPlayer ${userName}`);
+            
+            const allPlayers = Array.from(room.players.values());
+            allPlayers.splice(myPlayer?.position, 1)[0];
 
             socketItem.emit('user', {
                 myPlayer,
