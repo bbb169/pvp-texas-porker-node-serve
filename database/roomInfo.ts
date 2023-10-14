@@ -179,10 +179,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
             const hand = Hand.solve([...room.publicCards.map(card => translateCardToString(card.color, card.number)), 
                 ...typedPlayer.holdCards.map(card => translateCardToString(card.color, card.number))]);
 
-            victoryPlayers = [[typedPlayer, {
-                getChips: room.currentHasChips,
-                cardName: hand.name,
-            }]];
+            victoryPlayers = [[typedPlayer, { getChips: room.currentHasChips }]];
         } else {
             // =================== compare cards ====================
             const publicCards = room.publicCards.map(card => translateCardToString(card.color, card.number));
