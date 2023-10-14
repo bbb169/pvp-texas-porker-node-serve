@@ -149,7 +149,10 @@ export const addRoomSocket = (roomId: string, userName: string, socket: Socket<D
             roomMap.set(roomId, new Map().set(userName, socket));
         }
     } else {
-        userName += '-1';
+        while (roomMap.get(roomId)?.get(userName)) {
+            userName += '-1';
+        }
+
         roomMap.get(roomId)?.set(userName, socket);
     }
 
