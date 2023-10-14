@@ -1,8 +1,7 @@
+import { HandClassType } from '../types/pokersolver';
 import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
 import { distributeCards, translateCardToString, translateStringToCard } from '../utils/cards';
-import { HandClassType } from '../types/pokersolver';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const Hand = require('pokersolver').Hand as HandClassType;
+import Hand from '../utils/pokersolver';
 
 const roomMap = new Map<string, RoomInfo>();
 export const bigBlindValue = 5;
@@ -176,9 +175,6 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
             // all turn to front
             room.publicCards?.forEach(card => card.showFace = 'front');
 
-            const hand = Hand.solve([...room.publicCards.map(card => translateCardToString(card.color, card.number)), 
-                ...typedPlayer.holdCards.map(card => translateCardToString(card.color, card.number))]);
-
             victoryPlayers = [[typedPlayer, { getChips: room.currentHasChips }]];
         } else {
             // =================== compare cards ====================
@@ -187,7 +183,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
             const players = Array.from(room.players.values());
 
             const hands = players.map(player => {
-                const hand = Hand.solve([...publicCards, ...player.holdCards.map(card => translateCardToString(card.color, card.number))]);
+                const hand = Hand.solve([...publicCards, ...player.holdCards.map(card => translateCardToString(card.color, card.number))], room.isShortCards ? 'shortCardsStandard' : 'standard');
 
                 handMap.set(hand, player);
                 return hand;
@@ -195,7 +191,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
 
             // ===================== handle winners chips account ================
             // sort
-            const winners = Hand.winners(hands).sort((pre, cur) => {
+            const winners = Hand.winners(hands).sort((pre: HandClassType, cur: HandClassType) => {
                 const prePlayer = handMap.get(pre);
                 const curPlayer = handMap.get(cur);
 
@@ -205,11 +201,11 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                 throw new Error('can find player');
             });
 
-            const losePlayers: PlayerInfoType[] = players.filter(player => winners.every(hand => player.name !== handMap.get(hand)?.name));
+            const losePlayers: PlayerInfoType[] = players.filter(player => winners.every((hand: HandClassType) => player.name !== handMap.get(hand)?.name));
 
             // handle
             room.statu = 'settling';
-            winners.forEach((playerHand, handIndex) => {
+            winners.forEach((playerHand: HandClassType, handIndex: number) => {
                 const player = handMap.get(playerHand);
                 if (!player) throw new Error('can find player');
                 const getChips = player.calledChips;
@@ -238,7 +234,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                     const preVictoryPlayerInfo:[PlayerInfoType, VictoryInfo] = victoryPlayers[handIndex] ? victoryPlayers[handIndex] : [player, {
                         cardName: winners[index].name,
                         getChips: 0,
-                        cards: winners[index].toArray().map(str => translateStringToCard(str)),
+                        cards: winners[index].toArray().map((str: string) => translateStringToCard(str)),
                     }];
 
                     victoryPlayers[handIndex] = [preVictoryPlayerInfo[0], {
@@ -249,7 +245,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                 }
             });
 
-            winners.forEach((playerHand) => {
+            winners.forEach((playerHand: HandClassType) => {
                 const player = handMap.get(playerHand);
                 if (!player) throw new Error('can find player');
 
