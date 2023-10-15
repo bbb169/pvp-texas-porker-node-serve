@@ -13,8 +13,6 @@ import { addPlayerForRoom, createRoom, creatPlayer, deleteRoom, getRoomInfo } fr
 import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { socketCallChips, socketDisconnect, socketStartGame, socketTurnToNextGame } from '../routes/wbSocketListeners';
-import { getGptPredicate } from '../controller/gptPredicate';
-import Hand from '../utils/pokersolver';
 
 /**
  * 读取环境变量配置。
@@ -181,7 +179,6 @@ websocketIo.on('connection', socket => {
 
         // add socket and update username
         [roomId, userName] = addRoomSocket(roomId, userName, socket);
-        console.log(userName);
     
         // ================== create room and add player ===========
         // reasgin value to room
@@ -239,7 +236,6 @@ websocketIo.on('connection', socket => {
 
 export function reportToAllPlayersInRoom (roomId:string, callback?: (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, player: PlayerInfoType) => void) {
     const room = getRoomInfo(roomId);
-    console.log(room?.statu);
   
     if (room) {
         const playerMap: Map<string, PlayerInfoType> = new Map();

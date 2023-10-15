@@ -52,7 +52,6 @@ export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
     const newPlayers = new Map<string, PlayerInfoType>();
     const BBIndex = getRoomSBOrBBPosition(room, 'BB');
     const SBIndex = getRoomSBOrBBPosition(room, 'SB');
-    console.log('bbbb', BBIndex, SBIndex);
   
     players.forEach(player => {
         const holdCards = [];

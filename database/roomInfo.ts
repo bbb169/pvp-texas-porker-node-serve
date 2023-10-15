@@ -123,7 +123,6 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
                 }
             }
 
-            console.log('hasTurnToNext', hasTurnToNext, room.callingSteps, targetPlayer.status);
             // if didn't has turn to next yet, means it's time to determine victory
             if (!hasTurnToNext) {
                 resolve(determineVictory(roomId));
@@ -386,8 +385,6 @@ export function hanldePlayerCalledChips (roomId: string, player: PlayerInfoType,
         player.roundCalled = true;
         if (player.status.includes('calling')) {
             player.status = ['waiting'];
-        } else {
-            console.log('didn\'t change it', player.status);
         }
 
         room.currentCallChips = player.calledChips;
