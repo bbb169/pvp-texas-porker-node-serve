@@ -230,35 +230,10 @@ websocketIo.on('connection', socket => {
         });
 
         // ================== handle disconnect =====================
-        function deletCurrentPlayer () {
-            socketDisconnect(roomId, userName).then(validRoomNum => {
-                if (!validRoomNum) {
-                    deleteRoom(roomId);
-                    deleteRoomSocket(roomId);
-                } else {
-                    deleteRoomSocket(roomId, userName);
-                    reportToAllPlayersInRoom(roomId);
-                }
-            });
-        }
         // delete player from waiting room when it disconnects
         socket.on('disconnect', () => {
-            deletCurrentPlayer();
+            deletPlayer(roomId, userName);
         });
-
-        function heartBeatDetect () {
-            socket.timeout(10000).emit('heartbeat', 'heartbeat-ack', (err: unknown) => {
-                if (err) {
-                    socket.disconnect();
-                    deletCurrentPlayer();
-                    
-                    console.log('heartbeat-ack err', err, roomMap.size);
-                } else {
-                    heartBeatDetect();
-                }
-            });
-        }
-        heartBeatDetect();
     });
 });
 
@@ -291,3 +266,31 @@ export function reportToAllPlayersInRoom (roomId:string, callback?: (socket: Soc
     }
 }
 
+// ========================== heart detection ===========================
+function deletPlayer (roomId: string, userName: string) {
+    socketDisconnect(roomId, userName).then(validRoomNum => {
+        if (!validRoomNum) {
+            deleteRoom(roomId);
+            deleteRoomSocket(roomId);
+        } else {
+            deleteRoomSocket(roomId, userName);
+        }
+        
+        reportToAllPlayersInRoom(roomId);
+    });
+}
+setInterval(() => {
+    roomMap.forEach((socketMap, roomId) => {
+        socketMap.forEach((socket, username) => {
+            socket.timeout(100)
+                .emit('heartbeat', (err: unknown) => {
+                    if (err) {
+                        socket.disconnect();
+                        deletPlayer(roomId, username);
+                    
+                        console.log('heartbeat-ack err', username, roomMap.size);
+                    }
+                });
+        });
+    });
+}, 10000);

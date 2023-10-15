@@ -17,11 +17,7 @@ export function socketDisconnect (roomId: string, userName: string) {
                     playerCallChips(roomId, userName);
                 }
 
-                const finalStatus: PlayerInfoStatusType[] = disconnectPlayer.status.includes('fold') ? ['fold', 'disconnect'] : ['disconnect']; 
-                room.players.set(userName, {
-                    ...disconnectPlayer,
-                    status: finalStatus,
-                });
+                disconnectPlayer.status = disconnectPlayer.status.includes('fold') ? ['fold', 'disconnect'] : ['disconnect'];
             }
 
             // ========== check room whether is empty ============
