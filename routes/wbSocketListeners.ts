@@ -1,5 +1,4 @@
 import { deletePlayerForRoom, getRoomInfo, playerCallChips, startGame, turnToNextGame } from '../database/roomInfo';
-import { PlayerInfoStatusType } from '../types/roomInfo';
 
 export function socketDisconnect (roomId: string, userName: string) {
     return new Promise<number>((resolve) => {

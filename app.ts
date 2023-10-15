@@ -5,9 +5,6 @@ import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-// import routes
-import userRouter from './routes/users';
-import indexRouter from './routes';
 
 const app = express();
 
@@ -29,10 +26,6 @@ app.use(bodyParser.urlencoded({
 }));
 // 配置静态资源路径
 app.use(express.static('public'));
-
-// 注册路由模块
-app.use('/user', userRouter);
-app.use('/index', indexRouter);
 
 // 捕捉404并转发到错误处理器
 app.use((___, __, next) => {
