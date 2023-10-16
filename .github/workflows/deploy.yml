@@ -54,10 +54,10 @@ jobs:
           ssh root@${{secrets.REMOTE_HOST}} "
             cd ${{secrets.REMOTE_SERVER_DIR}};
             ls -a;
-            nvm use 19.1.0
+            nvm use 16.14.2
             npm install -g pnpm
             pnpm install
-            pnpm run build
+            pnpm run prod
           "
 
       - name: 删除 id_rsa

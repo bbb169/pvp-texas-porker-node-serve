@@ -3,8 +3,6 @@ node_modules
 package-lock.json
 # 编译结果
 dist
-# 公共资源
-public
 # 环境变量
 .env
 test_env.ts

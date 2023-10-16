@@ -22,7 +22,7 @@ dotenv.config();
 /**
  * 从环境变量中获取端口并存储在 Express 中。
  */
-const port = normalizePort(process.env.PORT || '4000');
+const port = normalizePort(process.env.PORT || '4001');
 app.set('port', port);
 
 /**
