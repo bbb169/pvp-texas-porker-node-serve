@@ -62,9 +62,13 @@ jobs:
           ssh root@${{secrets.REMOTE_HOST}} "
             cd ${{secrets.REMOTE_SERVER_DIR}};
             ls -a;
-            pnpm install;
-            pnpm run ts-build;
           "
+          
+      - name: 安装依赖
+        run: pnpm install
+
+      - name: 编译打包
+        run: pnpm run build
 
       - name: 删除 id_rsa
         run: rm -rf ~/.ssh/id_rsa
