@@ -28,6 +28,9 @@ jobs:
         with:
           path: "clone-files"
 
+      - name: Install pnpm
+        run: npm install -g pnpm
+
       - name: 设置 id_rsa
         run: |
           mkdir -p ~/.ssh/
