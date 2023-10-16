@@ -54,12 +54,14 @@ jobs:
         with:
           node-version: "19.1.0"
 
+      - name: Install pnpm
+        run: npm install -g pnpm
+
       - name: 启动 pm2
         run: |
           ssh root@${{secrets.REMOTE_HOST}} "
             cd ${{secrets.REMOTE_SERVER_DIR}};
             ls -a;
-            npm install -g pnpm
             pnpm install;
             pnpm run ts-build;
           "
