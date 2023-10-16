@@ -52,7 +52,7 @@ jobs:
       - name: 启动 pm2
         run: |
           ssh root@${{secrets.REMOTE_HOST}} "
-            cd /root/${{secrets.REMOTE_SERVER_DIR}};
+            cd ${{secrets.REMOTE_SERVER_DIR}};
             ls -a;
             pnpm install;
             pnpm run ts-build;
