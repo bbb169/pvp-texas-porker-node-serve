@@ -28,6 +28,20 @@ jobs:
         with:
           path: "clone-files"
 
+      - name: 设置 node 环境
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19.1.0"
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+          
+      - name: 安装依赖
+        run: pnpm install
+
+      - name: 编译打包
+        run: pnpm run build
+
       - name: 设置 id_rsa
         run: |
           mkdir -p ~/.ssh/
@@ -49,26 +63,12 @@ jobs:
           rsync -avz --exclude=".git" --exclude="node_modules" clone-files/ root@${{secrets.REMOTE_HOST}}:${{secrets.REMOTE_SERVER_DIR}}
           ls -a
 
-      - name: 设置 node 环境
-        uses: actions/setup-node@v3
-        with:
-          node-version: "19.1.0"
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
       - name: 启动 pm2
         run: |
           ssh root@${{secrets.REMOTE_HOST}} "
             cd ${{secrets.REMOTE_SERVER_DIR}};
             ls -a;
           "
-          
-      - name: 安装依赖
-        run: pnpm install
-
-      - name: 编译打包
-        run: pnpm run build
 
       - name: 删除 id_rsa
         run: rm -rf ~/.ssh/id_rsa
