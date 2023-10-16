@@ -57,7 +57,7 @@ jobs:
             nvm use 16.14.2
             npm install -g pnpm
             pnpm install
-            pnpm run prod
+            pnpm start
           "
 
       - name: 删除 id_rsa
