@@ -1,10 +1,11 @@
 import { readFileSync, writeFile } from 'fs';
+import path from 'path';
 
 /** private ket to encript message, this is just a demo */
 export const privateKey = 'secret key';
 
-const filePath = 'F:/桌面/gptPorkerPrompt.txt'; // customable
-const filePromptContent = readFileSync(filePath, 'utf8');
+const filePath = 'gptPorkerPrompt.txt'; // customable
+const filePromptContent = readFileSync(path.join(__dirname, filePath), 'utf8');
 export const addCaseToGptPrompt = (str: string) => {
     return new Promise((resolve, reject) => {
         writeFile(filePath, filePromptContent + str, 'utf8', (err) => {
