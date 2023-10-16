@@ -54,8 +54,8 @@ jobs:
           ssh root@${{secrets.REMOTE_HOST}} "
             cd /root/${{secrets.REMOTE_SERVER_DIR}};
             ls -a;
-            yarn;
-            yarn prod;
+            pnpm install;
+            pnpm run ts-build;
           "
 
       - name: 删除 id_rsa
