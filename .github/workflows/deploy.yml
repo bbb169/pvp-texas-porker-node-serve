@@ -28,9 +28,6 @@ jobs:
         with:
           path: "clone-files"
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-
       - name: 设置 id_rsa
         run: |
           mkdir -p ~/.ssh/
@@ -51,6 +48,9 @@ jobs:
         run: |
           rsync -avz --exclude=".git" --exclude="node_modules" clone-files/ root@${{secrets.REMOTE_HOST}}:${{secrets.REMOTE_SERVER_DIR}}
           ls -a
+
+      - name: Install pnpm
+        run: npm install -g pnpm
 
       - name: 启动 pm2
         run: |
