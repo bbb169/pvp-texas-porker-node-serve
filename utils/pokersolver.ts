@@ -1006,7 +1006,6 @@ class HighCard extends Hand {
         this.cards = this.cardPool.slice(0, this.game.cardsInHand);
 
         for (let i = 0; i < this.cards.length; i++) {
-            const card = this.cards[i];
             if (this.cards[i].value === this.game.wildValue) {
                 this.cards[i].wildValue = 'A';
                 this.cards[i].rank = values.indexOf('A');

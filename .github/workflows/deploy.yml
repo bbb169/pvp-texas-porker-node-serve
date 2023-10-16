@@ -1,0 +1,62 @@
+name: deploy pvp-texas-porker-node-serve
+
+on:
+  push:
+    branches:
+      - "master" # 针对 main 分支
+    paths:
+      - ".github/workflows/*"
+      - "src/**"
+      - "bin/*"
+      - "controller"
+      - "database"
+      - "routes"
+      - "types"
+      - "utils"
+      - "views"
+      - "package.json"
+      - "ecosystem.config.js"
+      - ".env"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 拉取项目代码
+        uses: actions/checkout@v3
+        with:
+          path: "clone-files"
+
+      - name: 设置 id_rsa
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{secrets.VORTESNAIL_ID_RSA}}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan ${{secrets.REMOTE_HOST}} >> ~/.ssh/known_hosts
+          cat ~/.ssh/known_hosts
+
+      - name: 将远程服务器的对应目录下所有文件及文件夹删除
+        run: | # /www/wwwroot/pvp-texas-porker-node-serve
+          ssh root@${{secrets.REMOTE_HOST}} "
+            cd ${{secrets.REMOTE_SERVER_DIR}};
+            pm2 kill;
+            rm -rf ./*;
+          "
+
+      - name: 将项目复制到远程服务器对应目录
+        run: |
+          rsync -avz --exclude=".git" --exclude="node_modules" clone-files/ root@${{secrets.REMOTE_HOST}}:${{secrets.REMOTE_SERVER_DIR}}
+          ls -a
+
+      - name: 启动 pm2
+        run: |
+          ssh root@${{secrets.REMOTE_HOST}} "
+            cd /root/${{secrets.REMOTE_SERVER_DIR}};
+            ls -a;
+            yarn;
+            yarn prod;
+          "
+
+      - name: 删除 id_rsa
+        run: rm -rf ~/.ssh/id_rsa

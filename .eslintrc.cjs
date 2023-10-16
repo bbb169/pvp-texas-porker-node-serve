@@ -92,7 +92,7 @@ module.exports = {
         // 链式调用每行一个
         'newline-per-chained-call': ['error', { ignoreChainWithDepth: 3 }],
         // 禁止出现长度小于2的标识符
-        'id-length': ['error', { exceptions:['x', 'y', 'i', 'j', 'e', 'a', 'b'] }],
+        'id-length': ['error', { exceptions:['x', 'y', 'i', 'j', 'e'] }],
         // 在块作用域内上下禁止留空行
         'padded-blocks': [1, 'never'],
         // 禁止连续的空行
@@ -108,14 +108,14 @@ module.exports = {
         indent: ['error', 4, { SwitchCase: 1, ignoredNodes: ['JSXAttribute'] }],
         'react/jsx-indent-props': ['error', 4],
         // "react/jsx-indent": "error",
-        'no-unused-vars': ['error', { varsIgnorePattern: '' }],
+        'no-unused-vars': ['warn', { varsIgnorePattern: '' }],
         'no-shadow': ['off'],
         'no-undef': ['error'],
         'no-debugger': ['error'],
         'react/jsx-filename-extension': [1, { extensions: ['.js', '.jsx', '.tsx'] }],
         'import/first': 'off',
         'import/prefer-default-export': ['off'],
-        'no-console': ['error', { allow: ['warn', 'error'] }],
+        'no-console': ['warn', { allow: ['warn', 'error'] }],
         'max-statements': ['error', 100],
         // 要求或禁止使用分号而不是 ASI（这个才是控制尾部分号的，）
         semi: [2, 'always'],
@@ -133,6 +133,7 @@ module.exports = {
         'space-infix-ops': 2,
         // 强制在一元操作符前后使用一致的空格
         'space-unary-ops': [2, { words: true, nonwords: false }],
+        '@typescript-eslint/no-explicit-any': ['warn'],
         // 强制在注释中 // 或 /* 使用一致的空格
         'spaced-comment': [
             'error', 'always', {

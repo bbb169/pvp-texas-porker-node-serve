@@ -84,9 +84,11 @@ function onError (error: any) {
         case 'EACCES':
             console.error(`${bind} 需要提升权限`);
             process.exit(1);
+        // eslint-disable-next-line no-fallthrough
         case 'EADDRINUSE':
             console.error(`${bind} 已经在使用中`);
             process.exit(1);
+        // eslint-disable-next-line no-fallthrough
         default:
             throw error;
     }
