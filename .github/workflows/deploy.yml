@@ -28,6 +28,11 @@ jobs:
         with:
           path: "clone-files"
 
+      - name: 设置 node 环境
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19.1.0"
+
       - name: 设置 id_rsa
         run: |
           mkdir -p ~/.ssh/
