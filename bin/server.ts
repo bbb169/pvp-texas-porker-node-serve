@@ -22,7 +22,7 @@ dotenv.config();
 /**
  * 从环境变量中获取端口并存储在 Express 中。
  */
-const port = normalizePort(process.env.PORT || '4001');
+const port = normalizePort(process.env.PORT || '5000');
 app.set('port', port);
 
 /**
@@ -30,13 +30,13 @@ app.set('port', port);
  * 如果是生产环境，则使用 HTTPS 创建服务器，否则使用 HTTP 创建服务器。
  */
 function createServer () {
-    if (process.env.NODE_ENV === 'production') {
-        const options = {
-            key: fs.readFileSync(path.join(__dirname, '../public/ssl/nonhana.site.key')),
-            cert: fs.readFileSync(path.join(__dirname, '../public/ssl/nonhana.site_bundle.pem')),
-        };
-        return https.createServer(options, app);
-    } 
+    // if (process.env.NODE_ENV === 'production') {
+    //     const options = {
+    //         key: fs.readFileSync(path.join(__dirname, '../public/ssl/nonhana.site.key')),
+    //         cert: fs.readFileSync(path.join(__dirname, '../public/ssl/nonhana.site_bundle.pem')),
+    //     };
+    //     return https.createServer(options, app);
+    // } 
     return http.createServer(app);
 }
 const server = createServer();
