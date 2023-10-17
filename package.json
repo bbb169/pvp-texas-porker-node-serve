@@ -1,5 +1,5 @@
 {
-  "name": "ts-express-demo",
+  "name": "pvp-texas-porker-node-serve",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -7,7 +7,7 @@
     "copy-static": "ts-node copyStatic.ts",
     "ts-build": "tsc",
     "build": "npm run ts-build && npm run copy-static",
-    "prod": "cross-env NODE_ENV=production pm2 start ecosystem.config.ts --interpreter ./node_modules/.bin/ts-node"
+    "prod": "cross-env NODE_ENV=production pm2 start pnpm --name pvp-texas-porker-node-serve -- run start"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

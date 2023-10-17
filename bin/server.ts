@@ -3,9 +3,6 @@
  */
 import dotenv from 'dotenv';
 import http from 'http';
-import https from 'https';
-import fs from 'fs';
-import path from 'path';
 import app from '../app';
 import debug from 'debug';
 import { Server as ServerIO, Socket  } from 'socket.io';
@@ -30,13 +27,6 @@ app.set('port', port);
  * 如果是生产环境，则使用 HTTPS 创建服务器，否则使用 HTTP 创建服务器。
  */
 function createServer () {
-    // if (process.env.NODE_ENV === 'production') {
-    //     const options = {
-    //         key: fs.readFileSync(path.join(__dirname, '../public/ssl/nonhana.site.key')),
-    //         cert: fs.readFileSync(path.join(__dirname, '../public/ssl/nonhana.site_bundle.pem')),
-    //     };
-    //     return https.createServer(options, app);
-    // } 
     return http.createServer(app);
 }
 const server = createServer();
@@ -107,7 +97,7 @@ function onListening () {
 
 const websocketIo = new ServerIO(server, {
     cors: {
-        origin: 'http://localhost:3333', // allowed front-end ip
+        origin: `http://${process.env.NODE_ENV === 'production' ? '152.136.254.142' : 'localhost'}:4000`, // allowed front-end ip
         methods: ['GET', 'POST'], // allowed HTTP methods
         allowedHeaders: ['my-custom-header'],
     },
@@ -280,7 +270,7 @@ function deletPlayer (roomId: string, userName: string) {
 setInterval(() => {
     roomMap.forEach((socketMap, roomId) => {
         socketMap.forEach((socket, username) => {
-            socket.timeout(100)
+            socket.timeout(1000)
                 .emit('heartbeat', (err: unknown) => {
                     if (err) {
                         socket.disconnect();
