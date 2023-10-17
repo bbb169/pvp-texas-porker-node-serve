@@ -51,6 +51,7 @@ export const creatPlayer = (userName: string, roomId?: string): PlayerInfoType =
         holdCent: 100,
         calledChips: 0,
         blind: 0,
+        debt: 0,
         roundCalled: false,
     };
 };
@@ -274,6 +275,11 @@ export function turnToNextGame (roomId: string) {
             if (player.status.includes('disconnect')) {
                 deletePlayerForRoom(roomId, player.name);
             } else {
+                if (player.holdCent === 0) {
+                    player.holdCent = 100;
+                    player.debt = 100;
+                }
+                player.calledChips = 0;
                 player.roundCalled = false;
                 player.holdCards = [];
                 player.status = ['waiting'];
