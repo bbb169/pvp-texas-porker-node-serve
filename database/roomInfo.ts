@@ -7,7 +7,7 @@ const roomMap = new Map<string, RoomInfo>();
 export const bigBlindValue = 5;
 export const smallBlindValue = 3;
 
-const initWaitingRommInfo: Omit<Omit<RoomInfo, 'buttonIndex'>, 'players'> = {
+export const initWaitingRommInfo: Omit<Omit<RoomInfo, 'buttonIndex'>, 'players'> = {
     statu: 'waiting',
     currentCallChips: 0,
     currentHasChips: 0,
@@ -67,18 +67,27 @@ export const deletePlayerForRoom = (roomId: string, userName: string) => {
 
     if (room && room.players.has(userName)) {
         let playerIndex = -1;
+        let isButtonPlayer = false;
 
-        room.players.forEach((player, userName) => {
+        room.players.forEach((player) => {
             if (playerIndex !== -1) {
                 player.position -= 1;
             }
             if (player.name === userName) {
                 playerIndex = player.position;
+                isButtonPlayer = player.position === room.buttonIndex;
             }
         });
         if (playerIndex === -1) return;
 
         room.players.delete(userName);
+        
+        if (isButtonPlayer) {
+            updateRoom(roomId, {
+                ...room,
+                buttonIndex: (room.buttonIndex + 1) % room.players.size,
+            });
+        }
     }
 };
 
@@ -273,7 +282,7 @@ export function turnToNextGame (roomId: string) {
 
         updateRoom(roomId, {
             ...room,
-            buttonIndex: room.buttonIndex === room.players.size - 1 ? 0 : room.buttonIndex + 1,
+            buttonIndex: (room.buttonIndex + 1) % room.players.size,
             ...initWaitingRommInfo,
         });
     }
