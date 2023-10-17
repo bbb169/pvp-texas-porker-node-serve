@@ -1,22 +1,22 @@
 name: deploy pvp-texas-porker-node-serve
 
-on:
-  push:
-    branches:
-      - "master" # 针对 main 分支
-    paths:
-      - ".github/workflows/*"
-      - "src/**"
-      - "bin/*"
-      - "controller/**"
-      - "database/**"
-      - "routes/**"
-      - "types/**"
-      - "utils/**"
-      - "views/**"
-      - "package.json"
-      - "ecosystem.config.js"
-      - ".env"
+# on:
+#   push:
+#     branches:
+#       - "master" # 针对 main 分支
+#     paths:
+#       - ".github/workflows/*"
+#       - "src/**"
+#       - "bin/*"
+#       - "controller/**"
+#       - "database/**"
+#       - "routes/**"
+#       - "types/**"
+#       - "utils/**"
+#       - "views/**"
+#       - "package.json"
+#       - "ecosystem.config.js"
+#       - ".env"
 
 jobs:
   deploy:
