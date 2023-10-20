@@ -7,4 +7,3 @@ dist
 .env
 test_env.ts
 copyStatic.ts
-chatgptApiKey.ts
