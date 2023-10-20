@@ -222,7 +222,10 @@ websocketIo.on('connection', socket => {
             reportDataToAllPlayersInRoom({
                 roomId, 
                 excludePlayerName: [userName], 
-                data: blob,
+                data: { 
+                    userName,
+                    blob,
+                },
                 evtKey: 'serverSendAudioBlob',
             });
         });
