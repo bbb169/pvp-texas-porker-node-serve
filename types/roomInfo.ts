@@ -24,6 +24,8 @@ export interface PlayerInfoType {
     blind: number;
     /** whether called in one round */
     roundCalled: boolean;
+    /** for heart derection */
+    activeTime: number;
 }
 
 export interface RoomInfo {

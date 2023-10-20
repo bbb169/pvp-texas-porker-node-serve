@@ -6,7 +6,7 @@ import http from 'http';
 import app from '../app';
 import debug from 'debug';
 import { Server as ServerIO, Socket  } from 'socket.io';
-import { addPlayerForRoom, createRoom, creatPlayer, deleteRoom, getRoomInfo } from '../database/roomInfo';
+import { addPlayerForRoom, createRoom, creatPlayer, deleteRoom, getRoomInfo, updatePlayerActiveTime } from '../database/roomInfo';
 import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { socketCallChips, socketDisconnect, socketStartGame, socketTurnToNextGame } from '../routes/wbSocketListeners';
@@ -218,13 +218,40 @@ websocketIo.on('connection', socket => {
             });
         });
 
+        socket.on('clientSendAudioBlob', (blob) => {
+            reportDataToAllPlayersInRoom({
+                roomId, 
+                excludePlayerName: [userName], 
+                data: blob,
+                evtKey: 'serverSendAudioBlob',
+            });
+        });
+
         // ================== handle disconnect =====================
         // delete player from waiting room when it disconnects
         socket.on('disconnect', () => {
             deletPlayer(roomId, userName);
         });
+
+        socket.on('heartDetect', () => {
+            updatePlayerActiveTime(roomId, userName);
+        });
     });
 });
+
+// ===================== report in room ===================
+
+export function reportDataToAllPlayersInRoom ({ roomId, evtKey, data, excludePlayerName = [] } : { roomId:string;evtKey: string; data: any, excludePlayerName: string[] }) {
+    const room = getRoomInfo(roomId);
+
+    if (room) {
+        roomMap.get(roomId)?.forEach((socketItem, userName) => {
+            if (!excludePlayerName.includes(userName)) {
+                socketItem.emit(evtKey, data);
+            }
+        });
+    }
+}
 
 export function reportToAllPlayersInRoom (roomId:string, callback?: (socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>, player: PlayerInfoType) => void) {
     const room = getRoomInfo(roomId);
@@ -267,18 +294,17 @@ function deletPlayer (roomId: string, userName: string) {
         reportToAllPlayersInRoom(roomId);
     });
 }
+
 setInterval(() => {
-    roomMap.forEach((socketMap, roomId) => {
-        socketMap.forEach((socket, username) => {
-            socket.timeout(1000)
-                .emit('heartbeat', (err: unknown) => {
-                    if (err) {
-                        socket.disconnect();
-                        deletPlayer(roomId, username);
-                    
-                        console.log('heartbeat-ack err', username, roomMap.size);
-                    }
-                });
+    roomMap.forEach((_socketMap, roomId) => {
+        const room = getRoomInfo(roomId);
+        const currentTime = new Date().getSeconds();
+
+        room?.players.forEach((player, username) => {
+            if (currentTime - player.activeTime > 15) {
+                deletPlayer(roomId, username);
+                console.log('heartbeat-ack err', username, roomMap.size);
+            }
         });
     });
 }, 10000);

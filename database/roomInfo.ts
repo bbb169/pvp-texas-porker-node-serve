@@ -53,6 +53,7 @@ export const creatPlayer = (userName: string, roomId?: string): PlayerInfoType =
         blind: 0,
         debt: 0,
         roundCalled: false,
+        activeTime: new Date().getSeconds(),
     };
 };
 
@@ -89,6 +90,14 @@ export const deletePlayerForRoom = (roomId: string, userName: string) => {
                 buttonIndex: (room.buttonIndex + 1) % room.players.size,
             });
         }
+    }
+};
+
+export const updatePlayerActiveTime = (roomId: string, userName: string) => {
+    const player = roomMap.get(roomId)?.players.get(userName);
+
+    if (player) {
+        player.activeTime = new Date().getSeconds();
     }
 };
 
