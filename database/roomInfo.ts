@@ -448,8 +448,6 @@ export function hanldePlayerCalledChips (
             clearRoomRoundAllCalled(roomId, player);
 
             if (!playerCalledRes) {
-                console.log(room.currentCallChips, callChips + player.calledChips);
-                
                 playerCalledRes = `加注到${callChips + player.calledChips}`;
             }
         } else if (room.currentCallChips === 0 && !playerCalledRes) { // bet

@@ -92,6 +92,7 @@ export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
     return {
         ...room,
         players: newPlayers,
+        isShortCards: shortCards,
         publicCards,
         statu: 'started',
         callingSteps: 0,
