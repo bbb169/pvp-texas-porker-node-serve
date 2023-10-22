@@ -7,7 +7,7 @@ import app from '../app';
 import debug from 'debug';
 import { Server as ServerIO, Socket  } from 'socket.io';
 import { addPlayerForRoom, createRoom, creatPlayer, deleteRoom, getRoomInfo, updatePlayerActiveTime } from '../database/roomInfo';
-import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
+import { PlayerCallChipsRes, PlayerInfoType, RoomInfo } from '../types/roomInfo';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { socketCallChips, socketDisconnect, socketStartGame, socketTurnToNextGame } from '../routes/wbSocketListeners';
 
@@ -198,11 +198,14 @@ websocketIo.on('connection', socket => {
         });
 
         socket.on('callChips', (callChips?: number) => {
-            socketCallChips(roomId, userName, callChips).then((callChipsRes: [PlayerInfoType, VictoryInfo][] | boolean) => {
+            socketCallChips(roomId, userName, callChips).then(({ victoryPlayers, playersCalledRes }: PlayerCallChipsRes) => {
                 reportToAllPlayersInRoom(roomId, (socket) => {
                     // =================== victoryPlayers ==============
-                    if (Array.isArray(callChipsRes)) {
-                        socket.emit('victoryPlayers', callChipsRes);
+                    if (victoryPlayers) {
+                        socket.emit('victoryPlayers', victoryPlayers);
+                    }
+                    if (playersCalledRes) {
+                        socket.emit('playersCalledRes', playersCalledRes);
                     }
                     // ================= getGptPredicate ==============
                     // if (callChipsRes === true && currentPlayer.status.includes('calling')) {

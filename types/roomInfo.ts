@@ -46,3 +46,8 @@ export interface VictoryInfo {
   cardName?: string;
   cards?: CardType[];
 }
+
+export interface PlayerCallChipsRes {
+  victoryPlayers?: [PlayerInfoType, VictoryInfo][],
+  playersCalledRes: [PlayerInfoType, string][];
+}
