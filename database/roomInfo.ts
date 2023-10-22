@@ -458,7 +458,7 @@ export function hanldePlayerCalledChips (
 
         // is not all in and fold, just use called chips
         if (finalCallChips === -1) {
-            finalCallChips = callChips;
+            finalCallChips = Math.max(0, callChips);
         }
 
         // ================== transfer chips=======================
