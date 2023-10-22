@@ -453,7 +453,7 @@ export function hanldePlayerCalledChips (
         } else if (room.currentCallChips === 0 && !playerCalledRes) { // bet
             playerCalledRes = `下注：${callChips}`;
         } else if (room.currentCallChips === callChips + player.calledChips && !playerCalledRes) { // call
-            playerCalledRes = `Check：${callChips}`;
+            playerCalledRes = `Check，当前最低${room.currentCallChips}`;
         }
 
         // is not all in and fold, just use called chips
