@@ -122,7 +122,8 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
             });
 
             if (!targetPlayer) {
-                throw new Error('playerCallChips can\'t find targetPlayer');
+                console.log('error', 'playerCallChips can\'t find targetPlayer', playersQueue, roomId, userName, callChips);
+                return;
             }
 
             if (checkRoomValidPlayerNumIsOne(roomId)) {
@@ -196,7 +197,7 @@ function checkRoomValidPlayerNumIsOne (roomId: string): PlayerInfoType | undefin
         if (validPlayerNum === 1) {
             return validPlayer;
         } else if (validPlayerNum === 0) {
-            throw new Error('none of player is valid');
+            console.log('error', 'none of player is valid', room);
         } else {
             return;
         }
@@ -223,6 +224,8 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
             const typedPlayer = validPlayer as unknown as PlayerInfoType;
 
             typedPlayer.holdCent += typedPlayer.calledChips;
+            console.log(typedPlayer.calledChips, room.currentHasChips);
+            
             typedPlayer.calledChips = 0;
             typedPlayer.holdCent += room.currentHasChips;
             room.statu = 'settling';
@@ -252,7 +255,8 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
                 if (prePlayer && curPlayer) {
                     return prePlayer.calledChips - curPlayer.calledChips;
                 } 
-                throw new Error('can find player');
+                console.log('error', 'can find player', pre, cur, handMap);
+                return -1;
             });
 
             const losePlayers: PlayerInfoType[] = players.filter(player => winners.every((hand: HandClassType) => player.name !== handMap.get(hand)?.name));
@@ -261,7 +265,10 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
             room.statu = 'settling';
             winners.forEach((playerHand: HandClassType, handIndex: number) => {
                 const player = handMap.get(playerHand);
-                if (!player) throw new Error('can find player');
+                if (!player) {
+                    console.log('error', 'can find player', handMap, playerHand);
+                    return;
+                }
                 const getChips = player.calledChips;
                 let evenlyChipsPool: number = 0;
 
@@ -283,7 +290,10 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
 
                 for (let index = handIndex; index < winners.length; index++) {
                     const player = handMap.get(winners[index]);
-                    if (!player) throw new Error('can find player');
+                    if (!player) {
+                        console.log('error', 'can find player', handMap, winners, index);
+                        return;
+                    }
 
                     const preVictoryPlayerInfo:[PlayerInfoType, VictoryInfo] = victoryPlayers[handIndex] ? victoryPlayers[handIndex] : [player, {
                         cardName: winners[index].name,
@@ -301,7 +311,10 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
 
             winners.forEach((playerHand: HandClassType) => {
                 const player = handMap.get(playerHand);
-                if (!player) throw new Error('can find player');
+                if (!player) {
+                    console.log('error', 'can find player', handMap, playerHand);
+                    return;
+                }
 
                 player.holdCent += player.calledChips;
                 player.calledChips = 0;
