@@ -7,7 +7,7 @@ import app from '../app';
 import debug from 'debug';
 import { Server as ServerIO, Socket  } from 'socket.io';
 import { addPlayerForRoom, createRoom, creatPlayer, deleteRoom, getRoomInfo, updatePlayerActiveTime } from '../database/roomInfo';
-import { PlayerCallChipsRes, PlayerInfoType, RoomInfo } from '../types/roomInfo';
+import { ChatMessageType, PlayerCallChipsRes, PlayerInfoType, RoomInfo } from '../types/roomInfo';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { socketCallChips, socketDisconnect, socketStartGame, socketTurnToNextGame } from '../routes/wbSocketListeners';
 
@@ -230,6 +230,15 @@ websocketIo.on('connection', socket => {
                     blob,
                 },
                 evtKey: 'serverSendAudioBlob',
+            });
+        });
+
+        socket.on('sendMessage', (msg: Omit<ChatMessageType, 'key'>) => {
+            reportDataToAllPlayersInRoom({
+                roomId, 
+                excludePlayerName: [], 
+                data: msg,
+                evtKey: 'receiveMessage',
             });
         });
 

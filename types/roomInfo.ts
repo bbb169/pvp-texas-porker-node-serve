@@ -51,3 +51,9 @@ export interface PlayerCallChipsRes {
   victoryPlayers?: [PlayerInfoType, VictoryInfo][],
   playersCalledRes: [PlayerInfoType, string][];
 }
+
+export interface ChatMessageType { 
+  key: string | number, 
+  player: PlayerInfoType, 
+  msg: string 
+}
