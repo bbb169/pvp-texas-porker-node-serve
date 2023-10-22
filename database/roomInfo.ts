@@ -1,5 +1,6 @@
 import { HandClassType } from '../types/pokersolver';
 import { PlayerInfoType, RoomInfo, VictoryInfo } from '../types/roomInfo';
+import { isEmpty } from '../utils';
 import { distributeCards, translateCardToString, translateStringToCard } from '../utils/cards';
 import Hand from '../utils/pokersolver';
 
@@ -124,6 +125,11 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
                 throw new Error('playerCallChips can\'t find targetPlayer');
             }
 
+            if (checkRoomValidPlayerNumIsOne(roomId)) {
+                resolve(determineVictory(roomId));
+                return;
+            }
+
             // ================= turn to next player calling =============
             let hasTurnToNext = false;
             let currentPosition = (targetPlayer.position + 1) % playersQueue.length;
@@ -135,16 +141,18 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
                     currentPlayer.status = ['calling'];
                     hasTurnToNext = true;
                 } else { // pass
+                    // will turn to disconnect player to fold if it can not follow;
                     if (currentPlayer.status.includes('disconnect')) {
                         hanldePlayerCalledChips(roomId, currentPlayer);
                     }
                     currentPosition = (currentPosition + 1) % (playersQueue.length);
                 }
             }
-
+            
             // if didn't has turn to next yet, means it's time to determine victory
             if (!hasTurnToNext) {
                 resolve(determineVictory(roomId));
+                return;
             }
 
             if (checkRoomRoundAllCalled(roomId) && checkRoomCallEqual(roomId)) {
@@ -160,24 +168,43 @@ export function playerCallChips (roomId: string, userName: string, callChips?: n
     });
 }
 
-function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
+/** if return player,means only one valid player, other case means room has more than one valid player */
+function checkRoomValidPlayerNumIsOne (roomId: string): PlayerInfoType | undefined {
     const room = getRoomInfo(roomId);
-    let victoryPlayers:[PlayerInfoType, VictoryInfo][] = [];
-
     if (room) {
-        // ================== only one player valid ===============
         let validPlayerNum = room.players.size;
         let validPlayer: PlayerInfoType | undefined = undefined;
 
         room.players.forEach(player => {
+            // as long as player is not fold, we count it is valid, even player disconnect;
             if (player.status.includes('fold')) {
                 validPlayerNum--;
             } else {
                 validPlayer = player;
             }
         });
-    
+
         if (validPlayerNum === 1) {
+            return validPlayer;
+        } else if (validPlayerNum === 0) {
+            throw new Error('none of player is valid');
+        } else {
+            return;
+        }
+    }
+
+    return;
+}
+
+function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
+    const room = getRoomInfo(roomId);
+    let victoryPlayers:[PlayerInfoType, VictoryInfo][] = [];
+
+    if (room) {
+        // ================== only one player valid ===============
+        const validPlayer = checkRoomValidPlayerNumIsOne(roomId);
+        
+        if (validPlayer) {
             room.players.forEach(player => {
                 if (player.status.includes('fold')) {
                     foldPlayerLoseToRoom(roomId, player);
@@ -372,11 +399,21 @@ function clearRoomRoundAllCalled (roomId: string, raisePlayer: PlayerInfoType) {
 }
 
 /** if called chips less than minimum callable chips, will be regarded as fold */
-export function hanldePlayerCalledChips (roomId: string, player: PlayerInfoType, callChips = 0) {
+export function hanldePlayerCalledChips (
+    roomId: string, 
+    player: PlayerInfoType, 
+    /** make player fold */
+    callChips = -1
+) {
+    // probally get null callChips
+    if (isEmpty(callChips)) {
+        callChips = -1;
+    }
+
     const room = getRoomInfo(roomId);
     if (room) {
         let finalCallChips: number = -1;
-    
+
         // ================= all in ==============
         if (player.holdCent <= callChips) {
             finalCallChips = player.holdCent;
