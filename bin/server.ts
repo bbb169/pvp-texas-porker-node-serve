@@ -242,6 +242,15 @@ websocketIo.on('connection', socket => {
             });
         });
 
+        socket.on('sendEmoji', (msg) => {
+            reportDataToAllPlayersInRoom({
+                roomId, 
+                excludePlayerName: [], 
+                data: msg,
+                evtKey: 'receiveEmoji',
+            });
+        });
+
         // ================== handle disconnect =====================
         // delete player from waiting room when it disconnects
         socket.on('disconnect', () => {
