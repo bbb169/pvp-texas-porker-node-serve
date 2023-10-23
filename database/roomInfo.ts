@@ -239,7 +239,7 @@ function determineVictory (roomId: string): [PlayerInfoType, VictoryInfo][] {
             const handMap = new Map<HandClassType, PlayerInfoType>();
             const players = Array.from(room.players.values());
 
-            const hands = players.map(player => {
+            const hands = players.filter(player => !player.status.includes('fold')).map(player => {
                 const hand = Hand.solve([...publicCards, ...player.holdCards.map(card => translateCardToString(card.color, card.number))], room.isShortCards ? 'shortCardsStandard' : 'standard');
 
                 handMap.set(hand, player);
