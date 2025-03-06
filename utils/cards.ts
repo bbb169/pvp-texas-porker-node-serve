@@ -1,18 +1,16 @@
-/* eslint-disable id-length */
 import { AES } from 'crypto-js';
-import { bigBlindValue, getRoomSBOrBBPosition, smallBlindValue } from '../database/roomInfo';
 import { CardColor, CardType, PlayerInfoType, RoomInfo } from '../types/roomInfo';
 import { privateKey } from './const';
 
 // [ 'A','2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 const suitMap: { [key: string]: CardColor} = {
-    h:'hearts', 
-    d:'diamonds', 
-    c:'clubs', 
-    s:'spades',
+    h: 'hearts', 
+    d: 'diamonds', 
+    c: 'clubs', 
+    s: 'spades',
 };
 
-export function initAllCards (shortCards = false) {
+export function initAllCards(shortCards = false): CardType[] {
     const suits: CardColor[] = ['hearts', 'diamonds', 'clubs', 'spades'];
     const ranks = shortCards ? ['A', 6, 7, 8, 9, 10, 'J', 'Q', 'K'] : ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K'];
 
@@ -33,15 +31,15 @@ export function initAllCards (shortCards = false) {
     return deck;
 }
 
-export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
+export function distributeCards(room: RoomInfo, shortCards = false): RoomInfo {
     const { players } = room;
     const cards = initAllCards(shortCards);
     const restDeck: number[] = cards.map((_item, index) => index);
   
-    // random draw card
-    function drawCard () {
+    // Random draw card function
+    function drawCard() {
         const randomIndex = Math.floor(Math.random() * restDeck.length);
-        // splice from restDeck to avoid repeat draw card.
+        // Splice from restDeck to avoid repeat draw card
         const drawnCardIndex = restDeck.splice(randomIndex, 1)[0];
     
         const drawnCard = cards[drawnCardIndex];
@@ -50,15 +48,16 @@ export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
 
     // ========== distribute two cards to each player ==========
     const newPlayers = new Map<string, PlayerInfoType>();
-    const BBIndex = getRoomSBOrBBPosition(room, 'BB');
-    const SBIndex = getRoomSBOrBBPosition(room, 'SB');
+    // Get BB and SB positions
+    const BBIndex = (room.buttonIndex + 2) % players.size;
+    const SBIndex = (room.buttonIndex + 1) % players.size;
   
     players.forEach(player => {
         const holdCards = [];
 
         for (let index = 0; index < 2; index++) {
             const getCard = drawCard();
-            // need to change origin object
+            // Need to change origin object
             getCard.holder = player.name;
             getCard.statu = 'distributed';
             getCard.showFace = 'front';
@@ -67,9 +66,9 @@ export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
 
         const getBlind = () => {
             if (player.position === BBIndex) {
-                return bigBlindValue;
+                return room.bigBlind;
             } else if (player.position === SBIndex) {
-                return smallBlindValue;
+                return room.smallBlind;
             }
             return 0;
         };
@@ -101,21 +100,34 @@ export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
     };
 }
 
-export function translateCardToString (color: string, number: string | number) {
+export function translateCardToString(color: CardColor, number: number | string): string {
+    const colorMap: Record<CardColor, string> = {
+        'hearts': 'h',
+        'diamonds': 'd',
+        'clubs': 'c',
+        'spades': 's'
+    };
+    
     if (number === 10) {
-        return `T${color[0]}`;
+        return `T${colorMap[color]}`;
     }
-    return number + color[0];
+    
+    const numberStr = number === 'A' ? 'A' : 
+                     number === 'J' ? 'J' : 
+                     number === 'Q' ? 'Q' : 
+                     number === 'K' ? 'K' : String(number);
+                     
+    return numberStr + colorMap[color];
 }
 
-export function translateStringToCard (str: string): CardType {
+export function translateStringToCard(str: string): CardType {
     const rank = str.slice(0, str.length - 1);
     const suit = suitMap[str[str.length - 1]];
 
     return {
         key: AES.encrypt(suit + rank, privateKey).toString(),
         color: suit,
-        number: rank,
+        number: rank === 'T' ? 10 : rank,
         showFace: 'front',
         statu: 'undistributed',
     };

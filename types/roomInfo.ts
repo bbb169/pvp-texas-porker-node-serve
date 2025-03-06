@@ -1,31 +1,42 @@
 export type CardColor = 'diamonds' | 'hearts' | 'spades' | 'clubs';
+
 export type CardStatu = 'undistributed' | 'distributed';
+
 export type CardShowFace = 'front' | 'back';
+
 export interface CardType {
   key: string;
-  color: 'diamonds' | 'hearts' | 'spades' | 'clubs';
+  color: CardColor;
   number: number | string;
   /** which face is the card toward to */
-  showFace: 'front' | 'back';
+  showFace: CardShowFace;
   /** who is the card belong to */
   holder?: string;
-  statu: 'undistributed' | 'distributed';
+  statu: CardStatu;
+}
+
+export enum CardColorEnum {
+  SPADE = 'spades',
+  HEART = 'hearts',
+  CLUB = 'clubs',
+  DIAMOND = 'diamonds'
 }
 
 export type PlayerInfoStatusType = 'disconnect' | 'calling' | 'waiting' | 'fold';
+
 export interface PlayerInfoType {
-    name: string;
-    position: number;
-    status: PlayerInfoStatusType[];
-    holdCards: CardType[];
-    debt: number;
-    calledChips: number;
-    holdCent: number;
-    blind: number;
-    /** whether called in one round */
-    roundCalled: boolean;
-    /** for heart derection */
-    activeTime: number;
+  name: string;
+  position: number;
+  status: PlayerInfoStatusType[];
+  holdCards: CardType[];
+  debt: number;
+  calledChips: number;
+  holdCent: number;
+  blind: number;
+  /** whether called in one round */
+  roundCalled: boolean;
+  /** for heart detection */
+  activeTime: number;
 }
 
 export interface RoomInfo {
@@ -48,12 +59,12 @@ export interface VictoryInfo {
 }
 
 export interface PlayerCallChipsRes {
-  victoryPlayers?: [PlayerInfoType, VictoryInfo][],
+  victoryPlayers?: [PlayerInfoType, VictoryInfo][];
   playersCalledRes: [PlayerInfoType, string][];
 }
 
 export interface ChatMessageType { 
-  key: string | number, 
-  player: PlayerInfoType, 
-  msg: string 
+  key: string | number;
+  player: PlayerInfoType; 
+  msg: string;
 }
