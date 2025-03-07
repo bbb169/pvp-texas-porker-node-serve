@@ -5,11 +5,11 @@ import { join } from 'path';
 import { AppModule as ApplicationModule } from './modules/app/app.module';
 import { RoomModule } from './modules/room/room.module';
 import { WebSocketModule } from './modules/websocket/websocket.module';
-import { GptPredictModule } from './modules/gpt-predict/gpt-predict.module';
+// import { GptPredictModule } from './modules/gpt-predict/gpt-predict.module';
 import { ApiModule } from './modules/api/api.module';
 import { LoggerMiddleware } from './app/middleware/logger.middleware';
-import { RoomSocketService } from './services/room-socket/room-socket.service';
-import { CardsService } from './utils/cards.service';
+import { RoomSocketService } from './services/room-socket.service';
+import { CardsService } from './services/cards.service';
 
 /**
  * Root application module
@@ -35,7 +35,7 @@ import { CardsService } from './utils/cards.service';
         ApplicationModule,
         RoomModule,
         WebSocketModule,
-        GptPredictModule,
+        // GptPredictModule,
         ApiModule,
     ],
     providers: [

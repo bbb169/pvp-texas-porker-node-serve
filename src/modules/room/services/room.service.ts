@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { PlayerInfoType, RoomInfo, VictoryInfo, PlayerCallChipsRes } from '../../../../types/roomInfo';
-import { isEmpty } from '../../../../utils';
-import { distributeCards, translateCardToString, translateStringToCard } from '../../../../utils/cards';
-import Hand from '../../../../utils/pokersolver';
-import { HandClassType } from '../../../../types/pokersolver';
+import { PlayerInfoType, RoomInfo, VictoryInfo, PlayerCallChipsRes } from '../../../types/roomInfo';
+import { isEmpty } from '../../../utils';
+import { distributeCards, translateCardToString, translateStringToCard } from '../../../utils/cards';
+import Hand from '../../../utils/pokersolver';
+import { HandClassType } from '../../../types/pokersolver';
 
 @Injectable()
 export class RoomService {
@@ -11,7 +11,7 @@ export class RoomService {
     private readonly bigBlindValue = 5;
     private readonly smallBlindValue = 3;
 
-    private readonly initWaitingRommInfo: Omit<Omit<RoomInfo, 'buttonIndex'>, 'players'> = {
+    public readonly initWaitingRommInfo: Omit<Omit<RoomInfo, 'buttonIndex'>, 'players'> = {
         statu: 'waiting',
         currentCallChips: 0,
         currentHasChips: 0,

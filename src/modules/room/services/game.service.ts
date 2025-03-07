@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PlayerInfoType, RoomInfo, VictoryInfo, PlayerCallChipsRes } from '../../../types/roomInfo';
+import { PlayerInfoType, RoomInfo, VictoryInfo, PlayerCallChipsRes } from 'src/types/roomInfo';
 import { RoomService } from './room.service';
 import { PlayerService } from './player.service';
-import { HandClassType } from '../../../types/pokersolver';
-import { distributeCards, translateCardToString, translateStringToCard } from '../../../utils/cards';
-import Hand from '../../../utils/pokersolver';
+import { HandClassType } from 'src/types/pokersolver';
+import { CardsService, translateCardToString } from '../../../services/cards.service';
+import Hand from 'src/utils/pokersolver';
 
 @Injectable()
 export class GameService {
@@ -17,7 +17,7 @@ export class GameService {
         const room = this.roomService.getRoomInfo(roomId);
 
         if (room) {
-            const newRoom = distributeCards(room, isShortCard);
+            const newRoom = new CardsService().distributeCards(room, isShortCard);
             this.roomService.updateRoom(roomId, newRoom);
         }
 

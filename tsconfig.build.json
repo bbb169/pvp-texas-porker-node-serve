@@ -9,5 +9,11 @@
     "**/__tests__/**",
     "dist",
     "bin"
-  ]
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+    }
+  }
 }

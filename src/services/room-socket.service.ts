@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
-import { PlayerInfoType } from '../../types/roomInfo';
-import { RoomService } from '../../modules/room/services/room.service';
-import { PlayerService } from '../../modules/room/services/player.service';
+import { PlayerInfoType } from '../types/roomInfo';
+import { RoomService } from '../modules/room/services/room.service';
+import { PlayerService } from '../modules/room/services/player.service';
 
 export type RoomSocketMapType = Map<string, Map<string, Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>>>;
 

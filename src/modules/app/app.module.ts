@@ -5,7 +5,7 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { RoomModule } from '../room/room.module';
 import { WebSocketModule } from '../websocket/websocket.module';
-import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
+// import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
 
 /**
  * AppModule is the root module of the application
@@ -29,7 +29,7 @@ import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
         }),
         RoomModule,
         WebSocketModule,
-        GptPredictModule,
+        // GptPredictModule,
     ],
     controllers: [AppController],
     providers: [],

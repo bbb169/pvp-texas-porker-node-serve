@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PlayerInfoType, RoomInfo, VictoryInfo, PlayerCallChipsRes } from '../../../types/roomInfo';
 import { RoomService } from './room.service';
+import { PlayerInfoType } from 'src/types/roomInfo';
 
 @Injectable()
 export class PlayerService {

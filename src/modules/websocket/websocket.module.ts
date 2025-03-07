@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { RoomModule } from '../room/room.module';
-import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
+// import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
 import { RoomGateway } from './events/room.gateway';
-import { RoomSocketService } from '../../services/room-socket/room-socket.service';
+import { RoomSocketService } from '../../services/room-socket.service';
 
 /**
  * WebSocketModule provides websocket functionality for the application
@@ -12,7 +12,7 @@ import { RoomSocketService } from '../../services/room-socket/room-socket.servic
 @Module({
     imports: [
         RoomModule,
-        GptPredictModule,
+        // GptPredictModule,
     ],
     providers: [
         RoomGateway,

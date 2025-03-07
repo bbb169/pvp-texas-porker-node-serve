@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 import { RoomModule } from '../room/room.module';
-import { RoomController } from '../room/controllers/room.controller';
-import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
 
 /**
  * ApiModule aggregates and organizes all API endpoints
@@ -14,7 +12,7 @@ import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
     imports: [
     // Import modules containing controllers
         RoomModule,
-        GptPredictModule,
+        // GptPredictModule,
     
         // Configure route prefixes
         RouterModule.register([
@@ -22,10 +20,10 @@ import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
                 path: 'api',
                 module: RoomModule,
             },
-            {
-                path: 'api',
-                module: GptPredictModule,
-            },
+            // {
+            //     path: 'api',
+            //     module: GptPredictModule,
+            // },
         ]),
     ],
     controllers: [],

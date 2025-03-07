@@ -5,7 +5,7 @@ import { GameService } from '../services/game.service';
 import { CreateRoomDto } from '../dto/create-room.dto';
 import { JoinRoomDto } from '../dto/join-room.dto';
 import { CallChipsDto, FoldCardsDto } from '../dto/game-action.dto';
-import { RoomInfo } from '../../../../types/roomInfo';
+import { RoomInfo } from '../../../types/roomInfo';
 
 /**
  * Interface representing basic room information
@@ -88,7 +88,7 @@ export class RoomController {
    */
   @Get()
   listRooms (): { rooms: { id: string; playerCount: number; status: string }[], totalRooms: number } {
-      const rooms = Array.from(this.roomService.getAllRooms().values()).map(([id, room]) => ({
+      const rooms = Array.from(this.roomService.getAllRooms().entries()).map(([id, room]) => ({
           id,
           playerCount: room.players.size,
           status: room.statu,
@@ -147,7 +147,7 @@ export class RoomController {
    */
   @Get('stats')
   getRoomStats (): { totalRooms: number; activeGames: number; waitingRooms: number; totalPlayers: number } {
-      const rooms = this.roomService.getAllRooms();
+      const rooms = Array.from(this.roomService.getAllRooms().entries());
       let activeGames = 0;
       let waitingRooms = 0;
       let totalPlayers = 0;
@@ -162,7 +162,7 @@ export class RoomController {
       });
     
       return {
-          totalRooms: rooms.size,
+          totalRooms: rooms.length,
           activeGames,
           waitingRooms,
           totalPlayers,

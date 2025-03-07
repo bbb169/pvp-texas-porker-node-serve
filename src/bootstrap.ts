@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
-import { RoomSocketService } from './services/room-socket/room-socket.service';
+import { RoomSocketService } from './services/room-socket.service';
 import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';

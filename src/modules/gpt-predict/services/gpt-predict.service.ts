@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { OpenAI } from 'openai';
-import { OPENAI_API_KEY } from '../../../utils/chatgptApiKey';
-import { getGptPrompt } from '../../../utils/const';
-import { CardType, PlayerInfoType } from '../../../types/roomInfo';
-import { translateCardToString, translateStringToCard } from '../../../utils/cards';
+import { OPENAI_API_KEY } from 'src/utils/chatgptApiKey';
+import { CardType, PlayerInfoType } from 'src/types/roomInfo';
+import { translateCardToString, translateStringToCard } from 'src/utils/cards';
 import { RoomService } from '../../room/services/room.service';
+import { getGptPrompt } from '@/utils/const';
 
 interface GptPromptMessage {
   publicCards: string[];
