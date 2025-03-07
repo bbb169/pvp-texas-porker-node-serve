@@ -5,9 +5,9 @@ import { PlayerService } from './services/player.service';
 import { GameService } from './services/game.service';
 
 @Module({
-  imports: [],
-  controllers: [RoomController],
-  providers: [RoomService, PlayerService, GameService],
-  exports: [RoomService, PlayerService, GameService],
+    imports: [],
+    controllers: [RoomController],
+    providers: [RoomService, PlayerService, GameService],
+    exports: [RoomService, PlayerService, GameService],
 })
 export class RoomModule {}

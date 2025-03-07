@@ -9,21 +9,21 @@ interface HandClassType {
 }
 
 const Hand = {
-  solve: (cards: string[], game?: string) => {
-    return {
-      name: 'High Card',
-      cards: cards,
-      ranks: [1],
-      value: 1,
-      descr: 'High Card',
-      toArray: () => cards,
-      toString: () => 'High Card'
-    };
-  },
+    solve: (cards: string[], game?: string) => {
+        return {
+            name: 'High Card',
+            cards,
+            ranks: [1],
+            value: 1,
+            descr: 'High Card',
+            toArray: () => cards,
+            toString: () => 'High Card',
+        };
+    },
   
-  winners: (hands: HandClassType[]) => {
-    return hands.length > 0 ? [hands[0]] : [];
-  }
+    winners: (hands: HandClassType[]) => {
+        return hands.length > 0 ? [hands[0]] : [];
+    },
 };
 
 export default Hand;

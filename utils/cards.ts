@@ -10,7 +10,7 @@ const suitMap: { [key: string]: CardColor} = {
     s: 'spades',
 };
 
-export function initAllCards(shortCards = false): CardType[] {
+export function initAllCards (shortCards = false): CardType[] {
     const suits: CardColor[] = ['hearts', 'diamonds', 'clubs', 'spades'];
     const ranks = shortCards ? ['A', 6, 7, 8, 9, 10, 'J', 'Q', 'K'] : ['A', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K'];
 
@@ -31,13 +31,13 @@ export function initAllCards(shortCards = false): CardType[] {
     return deck;
 }
 
-export function distributeCards(room: RoomInfo, shortCards = false): RoomInfo {
+export function distributeCards (room: RoomInfo, shortCards = false): RoomInfo {
     const { players } = room;
     const cards = initAllCards(shortCards);
     const restDeck: number[] = cards.map((_item, index) => index);
   
     // Random draw card function
-    function drawCard() {
+    function drawCard () {
         const randomIndex = Math.floor(Math.random() * restDeck.length);
         // Splice from restDeck to avoid repeat draw card
         const drawnCardIndex = restDeck.splice(randomIndex, 1)[0];
@@ -100,27 +100,27 @@ export function distributeCards(room: RoomInfo, shortCards = false): RoomInfo {
     };
 }
 
-export function translateCardToString(color: CardColor, number: number | string): string {
+export function translateCardToString (color: CardColor, number: number | string): string {
     const colorMap: Record<CardColor, string> = {
-        'hearts': 'h',
-        'diamonds': 'd',
-        'clubs': 'c',
-        'spades': 's'
+        hearts: 'h',
+        diamonds: 'd',
+        clubs: 'c',
+        spades: 's',
     };
     
     if (number === 10) {
         return `T${colorMap[color]}`;
     }
     
-    const numberStr = number === 'A' ? 'A' : 
-                     number === 'J' ? 'J' : 
-                     number === 'Q' ? 'Q' : 
-                     number === 'K' ? 'K' : String(number);
+    const numberStr = number === 'A' ? 'A' 
+        : number === 'J' ? 'J' 
+            : number === 'Q' ? 'Q' 
+                : number === 'K' ? 'K' : String(number);
                      
     return numberStr + colorMap[color];
 }
 
-export function translateStringToCard(str: string): CardType {
+export function translateStringToCard (str: string): CardType {
     const rank = str.slice(0, str.length - 1);
     const suit = suitMap[str[str.length - 1]];
 

@@ -9,10 +9,10 @@ export class JoinRoomDto {
   @IsNotEmpty({ message: 'Room ID cannot be empty' })
   @IsString({ message: 'Room ID must be a string' })
   @MinLength(1, { message: 'Room ID must not be empty' })
-  roomId: string;
+      roomId: string;
 
   @IsNotEmpty({ message: 'User name cannot be empty' })
   @IsString({ message: 'User name must be a string' })
   @MinLength(1, { message: 'User name must not be empty' })
-  userName: string;
+      userName: string;
 }

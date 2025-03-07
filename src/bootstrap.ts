@@ -6,7 +6,7 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export async function bootstrap(): Promise<void> {
+export async function bootstrap (): Promise<void> {
     const app = await NestFactory.create(AppModule);
     const logger = new Logger('Bootstrap');
     
@@ -77,7 +77,7 @@ export async function bootstrap(): Promise<void> {
     });
 }
 
-function normalizePort(val: string): number | string | boolean {
+function normalizePort (val: string): number | string | boolean {
     const port = parseInt(val, 10);
 
     if (isNaN(port)) {
@@ -93,7 +93,7 @@ function normalizePort(val: string): number | string | boolean {
     return false;
 }
 
-function createServer(instance: any): http.Server {
+function createServer (instance: any): http.Server {
     if (process.env.NODE_ENV === 'production' && 
         fs.existsSync('./certificates/privkey.pem') && 
         fs.existsSync('./certificates/cert.pem')) {
@@ -106,7 +106,7 @@ function createServer(instance: any): http.Server {
     return http.createServer(instance);
 }
 
-function onError(error: NodeJS.ErrnoException, server: http.Server, port: number | string | boolean): void {
+function onError (error: NodeJS.ErrnoException, server: http.Server, port: number | string | boolean): void {
     if (error.syscall !== 'listen') {
         throw error;
     }
@@ -129,7 +129,7 @@ function onError(error: NodeJS.ErrnoException, server: http.Server, port: number
     }
 }
 
-function onListening(server: http.Server): void {
+function onListening (server: http.Server): void {
     const addr = server.address();
     const bind = typeof addr === 'string'
         ? `pipe ${addr}`

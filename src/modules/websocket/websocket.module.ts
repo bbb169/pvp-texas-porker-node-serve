@@ -10,17 +10,17 @@ import { RoomSocketService } from '../../services/room-socket/room-socket.servic
  * game updates and AI predictions
  */
 @Module({
-  imports: [
-    RoomModule,
-    GptPredictModule,
-  ],
-  providers: [
-    RoomGateway,
-    RoomSocketService,
-  ],
-  exports: [
-    RoomGateway,
-    RoomSocketService,
-  ],
+    imports: [
+        RoomModule,
+        GptPredictModule,
+    ],
+    providers: [
+        RoomGateway,
+        RoomSocketService,
+    ],
+    exports: [
+        RoomGateway,
+        RoomSocketService,
+    ],
 })
 export class WebSocketModule {}

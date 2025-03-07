@@ -18,46 +18,46 @@ import { CardsService } from './utils/cards.service';
  * It imports all required modules and sets up global configurations and middleware.
  */
 @Module({
-  imports: [
+    imports: [
     // Load environment variables
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
+        ConfigModule.forRoot({
+            isGlobal: true,
+            envFilePath: '.env',
+        }),
     
-    // Serve static files
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-      exclude: ['/api/*'],
-    }),
+        // Serve static files
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '..', 'public'),
+            exclude: ['/api/*'],
+        }),
     
-    // Application modules
-    ApplicationModule,
-    RoomModule,
-    WebSocketModule,
-    GptPredictModule,
-    ApiModule,
-  ],
-  providers: [
+        // Application modules
+        ApplicationModule,
+        RoomModule,
+        WebSocketModule,
+        GptPredictModule,
+        ApiModule,
+    ],
+    providers: [
     // Global providers available throughout the application
-    RoomSocketService,
-    CardsService,
-  ],
-  exports: [
+        RoomSocketService,
+        CardsService,
+    ],
+    exports: [
     // Export providers that might be needed outside this module
-    RoomSocketService,
-    CardsService,
-  ]
+        RoomSocketService,
+        CardsService,
+    ],
 })
 export class AppModule implements NestModule {
-  /**
+    /**
    * Configure global middleware
    * 
    * Sets up middleware that applies to all routes
    */
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
-  }
+    configure (consumer: MiddlewareConsumer) {
+        consumer
+            .apply(LoggerMiddleware)
+            .forRoutes({ path: '*', method: RequestMethod.ALL });
+    }
 }

@@ -9,11 +9,11 @@ import { Type } from 'class-transformer';
 export class PlayerInfoDto {
   @IsNotEmpty({ message: 'Player name cannot be empty' })
   @IsString({ message: 'Player name must be a string' })
-  name: string;
+      name: string;
 
   @IsNotEmpty({ message: 'Position is required' })
   @IsNumber({}, { message: 'Position must be a number' })
-  position: number;
+      position: number;
 
   // Other player properties are not validated in this DTO as they may not be required
   // for chat message functionality, but they're included for type completion
@@ -36,16 +36,16 @@ export class PlayerInfoDto {
  */
 export class ChatMessageDto {
   @IsNotEmpty({ message: 'Key cannot be empty' })
-  key: string | number;
+      key: string | number;
 
   @IsNotEmpty({ message: 'Player information is required' })
   @ValidateNested()
   @Type(() => PlayerInfoDto)
-  player: PlayerInfoDto;
+      player: PlayerInfoDto;
 
   @IsNotEmpty({ message: 'Message content cannot be empty' })
   @IsString({ message: 'Message content must be a string' })
-  msg: string;
+      msg: string;
 }
 
 /**
@@ -53,7 +53,7 @@ export class ChatMessageDto {
  */
 export class TextMessageDto extends ChatMessageDto {
   @IsString({ message: 'Text message must be a string' })
-  msg: string;
+      msg: string;
 }
 
 /**
@@ -61,7 +61,7 @@ export class TextMessageDto extends ChatMessageDto {
  */
 export class EmoticonMessageDto extends ChatMessageDto {
   @IsString({ message: 'Emoticon code must be a string' })
-  msg: string;
+      msg: string;
 }
 
 /**
@@ -69,11 +69,11 @@ export class EmoticonMessageDto extends ChatMessageDto {
  */
 export class AudioMessageDto extends ChatMessageDto {
   @IsString({ message: 'Audio URL must be a string' })
-  msg: string;
+      msg: string;
   
   @IsOptional()
   @IsNumber({}, { message: 'Duration must be a number' })
-  duration?: number;
+      duration?: number;
 }
 
 /**
@@ -82,17 +82,17 @@ export class AudioMessageDto extends ChatMessageDto {
 export class SendChatMessageDto {
   @IsNotEmpty({ message: 'Room ID cannot be empty' })
   @IsString({ message: 'Room ID must be a string' })
-  roomId: string;
+      roomId: string;
 
   @IsNotEmpty({ message: 'User name cannot be empty' })
   @IsString({ message: 'User name must be a string' })
-  userName: string;
+      userName: string;
 
   @IsNotEmpty({ message: 'Message content cannot be empty' })
   @IsString({ message: 'Message content must be a string' })
-  message: string;
+      message: string;
 
   @IsOptional()
   @IsString({ message: 'Message type must be a string' })
-  type?: 'text' | 'emoticon' | 'audio';
+      type?: 'text' | 'emoticon' | 'audio';
 }

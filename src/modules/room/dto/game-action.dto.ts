@@ -9,7 +9,7 @@ import { Type } from 'class-transformer';
  */
 export class GameActionDto {
   @IsNotEmpty({ message: 'Player information is required' })
-  player: {
+      player: {
     name: string;
     [key: string]: any;
   };
@@ -17,7 +17,7 @@ export class GameActionDto {
   @IsOptional()
   @IsNumber({}, { message: 'Chips must be a number' })
   @Min(0, { message: 'Chips must be at least 0' })
-  chips?: number;
+      chips?: number;
 }
 
 /**
@@ -28,11 +28,11 @@ export class GameActionDto {
 export class StartGameDto {
   @IsNotEmpty({ message: 'Room ID cannot be empty' })
   @IsString({ message: 'Room ID must be a string' })
-  roomId: string;
+      roomId: string;
 
   @IsOptional()
   @IsBoolean({ message: 'isShortCard must be a boolean' })
-  isShortCard?: boolean;
+      isShortCard?: boolean;
 }
 
 /**
@@ -43,16 +43,16 @@ export class StartGameDto {
 export class CallChipsDto {
   @IsNotEmpty({ message: 'Room ID cannot be empty' })
   @IsString({ message: 'Room ID must be a string' })
-  roomId: string;
+      roomId: string;
 
   @IsNotEmpty({ message: 'User name cannot be empty' })
   @IsString({ message: 'User name must be a string' })
-  userName: string;
+      userName: string;
 
   @IsOptional()
   @IsNumber({}, { message: 'Chips must be a number' })
   @Min(0, { message: 'Chips must be at least 0' })
-  chips?: number;
+      chips?: number;
 }
 
 /**
@@ -63,7 +63,7 @@ export class CallChipsDto {
 export class TurnToNextGameDto {
   @IsNotEmpty({ message: 'Room ID cannot be empty' })
   @IsString({ message: 'Room ID must be a string' })
-  roomId: string;
+      roomId: string;
 }
 
 /**
@@ -74,11 +74,11 @@ export class TurnToNextGameDto {
 export class FoldCardsDto {
   @IsNotEmpty({ message: 'Room ID cannot be empty' })
   @IsString({ message: 'Room ID must be a string' })
-  roomId: string;
+      roomId: string;
 
   @IsNotEmpty({ message: 'User name cannot be empty' })
   @IsString({ message: 'User name must be a string' })
-  userName: string;
+      userName: string;
 }
 
 /**
@@ -89,11 +89,11 @@ export class FoldCardsDto {
 export class CheckCardsDto {
   @IsNotEmpty({ message: 'Room ID cannot be empty' })
   @IsString({ message: 'Room ID must be a string' })
-  roomId: string;
+      roomId: string;
 
   @IsNotEmpty({ message: 'User name cannot be empty' })
   @IsString({ message: 'User name must be a string' })
-  userName: string;
+      userName: string;
 }
 
 /**
@@ -104,9 +104,9 @@ export class CheckCardsDto {
 export class GetPredictionDto {
   @IsNotEmpty({ message: 'Room ID cannot be empty' })
   @IsString({ message: 'Room ID must be a string' })
-  roomId: string;
+      roomId: string;
 
   @IsNotEmpty({ message: 'User name cannot be empty' })
   @IsString({ message: 'User name must be a string' })
-  userName: string;
+      userName: string;
 }

@@ -8,7 +8,7 @@ import { Controller, Get, Render } from '@nestjs/common';
  */
 @Controller()
 export class AppController {
-  constructor() {}
+    constructor () {}
 
   /**
    * Root route handler
@@ -16,9 +16,9 @@ export class AppController {
    * @returns Simple response message
    */
   @Get()
-  getHello(): { message: string } {
-    return { message: 'Welcome to Texas Poker Server!' };
-  }
+    getHello (): { message: string } {
+        return { message: 'Welcome to Texas Poker Server!' };
+    }
 
   /**
    * Route for rendering the index page
@@ -27,8 +27,8 @@ export class AppController {
    */
   @Get('index')
   @Render('index')
-  getIndex(): { title: string } {
-    return { title: 'Texas Poker Game' };
+  getIndex (): { title: string } {
+      return { title: 'Texas Poker Game' };
   }
 
   /**
@@ -37,7 +37,7 @@ export class AppController {
    * @returns Simple OK response to check if service is running
    */
   @Get('health')
-  getHealth(): { status: string } {
-    return { status: 'OK' };
+  getHealth (): { status: string } {
+      return { status: 'OK' };
   }
 }

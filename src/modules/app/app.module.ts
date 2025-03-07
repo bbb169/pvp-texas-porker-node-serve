@@ -18,20 +18,20 @@ import { GptPredictModule } from '../gpt-predict/gpt-predict.module';
  * - GptPredictModule: For AI prediction capabilities
  */
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '../..', 'public'),
-      exclude: ['/api*'],
-    }),
-    RoomModule,
-    WebSocketModule,
-    GptPredictModule,
-  ],
-  controllers: [AppController],
-  providers: [],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+            envFilePath: '.env',
+        }),
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '../..', 'public'),
+            exclude: ['/api*'],
+        }),
+        RoomModule,
+        WebSocketModule,
+        GptPredictModule,
+    ],
+    controllers: [AppController],
+    providers: [],
 })
 export class AppModule {}
